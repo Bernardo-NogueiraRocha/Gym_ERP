@@ -1,21 +1,3 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
 # GYM_ERP
 
 ERP: Enterprise Resource Planning
@@ -88,3 +70,19 @@ File Storage: AWS S3 + CloudFront
 Validation & State: Zod + React Hook form for schema validation, in order to prevent corrupted enrollment or accounting inputs.
 
 Deployment: AWS EC2 + RDS (for Postgres) + S3 (Storage)
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
