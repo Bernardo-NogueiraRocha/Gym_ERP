@@ -71,6 +71,50 @@ Validation & State: Zod + React Hook form for schema validation, in order to pre
 
 Deployment: AWS EC2 + RDS (for Postgres) + S3 (Storage)
 
+## Pages
+### User authentication and onboarding:
+/sign-Up
+/sign-In
+/forgot-password
+/onboarding
+
+### Core ERP and Portals:
+/dashboard (different views for each user type, such as student, professional, administrator)
+
+### Student management:
+/students
+/students/new
+/students/[student_id]
+/students/[student_id]/workouts
+
+### Workout and exercise library:
+/workouts
+/workout/[workout_id]
+/exercises
+/exercise/[exercise_id]
+/exercises/new
+
+### Plans and memberships:
+/plans
+/plans/new
+/promotions
+
+### Finance:
+/finance/overview
+/finance/receivables
+/finance/payables
+/finance/deliquency
+/finance/reports
+
+### Operations:
+/professionals
+/professionals/[professional_id]
+/contracts/[contract_id]
+
+### System administration:
+/admin/audits
+/admin/settings
+
 ## Getting Started
 
 First, run the development server:
