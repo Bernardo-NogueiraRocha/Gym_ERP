@@ -2,7 +2,7 @@
 
 ## Phase 1: Core Database & Auth
 - [X] Define remaining tables (financial ledger, exercises, workouts, audits)
-- [ ] Verify local database connectivity and run initial migration via Drizzle Kit
+- [X] Verify local database connectivity and run initial migration via Drizzle Kit
 - [ ] Setup Better Auth
 - [ ] Setup shadcn-ui
 - [ ] Implement Sign-Up page (`/sign-up`)
