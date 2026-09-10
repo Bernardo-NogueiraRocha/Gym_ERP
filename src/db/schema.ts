@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, numeric, varchar, char, pgEnum, date } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, numeric, varchar, char, pgEnum, date, integer, time } from 'drizzle-orm/pg-core';
 
 export const student_status_enum = pgEnum('status', ['ACTIVE', 'SUSPENDED', 'CANCELLED']);
 
@@ -23,7 +23,7 @@ export const plans = pgTable('plans', {
   billingCycle: billing_enum('billing_cycle').notNull(),
   basePrice: numeric('base_price', { precision: 12, scale: 2 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(), // Fixed column name
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
 export const studentPlanStatusEnum = pgEnum('student_plan_status', [
@@ -48,60 +48,105 @@ export const studentPlan = pgTable('student_plan', {
   contractUrl: text('contract_url'),
 });
 
-// export const professionals = pgTable('professionals', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: text('name').notNull(),
-//   working_hours: text('working_hours').notNull(),
-//   createdAt: timestamp('created_at').defaultNow().notNull(),
-// });
+export const expenseCategoryEnum = pgEnum('expense_category', [
+  'Salary', 'Machinery', 'Repair', 'Cleaning', 'Monthly', 'Supplies', 'Rent', 'Loans'
+]);
 
+export const dayOfWeekEnum = pgEnum('day_of_week', [
+  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+]);
 
-// export const workouts = pgTable('workouts', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   student_id: uuid('student_id').references(
-//     ()=> students.id , {onDelete:'cascade', onUpdate:'cascade'}),
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'Pending', 'Completed', 'Overdue'
+]);
 
-//   prescribed_by_professional_id: uuid('prescribed_by_professional_id').references(
-//     ()=> professionals.id, {onDelete: 'set null', onUpdate:'set null'}
-//   )
-//   ,
-//   billing_cycle: text('billing_cycle'),
-//   base_price: numeric('base_price', {precision:2})
-// });
+export const professionals = pgTable('professionals', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  workingHours: text('working_hours').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
+});
 
-// export const workout_items = pgTable('exercises', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: varchar('name', {length:100}).notNull(),
-//   target_muscles: text('target_muscles').notNull(),
-// });
+export const workouts = pgTable('workouts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  studentId: uuid('student_id').references(
+    () => students.id, { onDelete: 'cascade', onUpdate: 'cascade' }
+  ).notNull(),
+  prescribedByProfessionalId: uuid('prescribed_by_professional_id').references(
+    () => professionals.id, { onDelete: 'set null', onUpdate: 'set null' }
+  ),
+  title: varchar('title', { length: 50 }).notNull(),
+  startDate: date('start_date').notNull(),
+  endDate: date('end_date'),
+});
 
+export const exercises = pgTable('exercises', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  targetMuscles: text('target_muscles').notNull(),
+});
 
-// export const exercises = pgTable('exercises', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: varchar('name', {length:100}).notNull(),
-//   target_muscles: text('target_muscles').notNull(),
-// });
+export const workoutItems = pgTable('workout_items', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  workoutId: uuid('workout_id').references(
+    () => workouts.id, { onDelete: 'cascade', onUpdate: 'cascade' }
+  ).notNull(),
+  exerciseId: uuid('exercise_id').references(
+    () => exercises.id, { onDelete: 'restrict', onUpdate: 'cascade' }
+  ).notNull(),
+  sets: integer('sets').notNull(),
+  reps: integer('reps').notNull(),
+  restSeconds: integer('rest_seconds').default(30).notNull(),
+});
 
-// export const expense_bills = pgTable('exercises', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: varchar('name', {length:100}).notNull(),
-//   target_muscles: text('target_muscles').notNull(),
-// });
+export const classes = pgTable('classes', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  capacity: integer('capacity').notNull(),
+});
 
-// export const class_schedules = pgTable('exercises', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: varchar('name', {length:100}).notNull(),
-//   target_muscles: text('target_muscles').notNull(),
-// });
+export const classSchedules = pgTable('class_schedules', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  classId: uuid('class_id').references(
+    () => classes.id, { onDelete: 'cascade', onUpdate: 'cascade' }
+  ).notNull(),
+  professionalId: uuid('professional_id').references(
+    () => professionals.id, { onDelete: 'cascade', onUpdate: 'cascade' }
+  ).notNull(),
+  startTime: time('start_time').notNull(),
+  endTime: time('end_time').notNull(),
+  dayWeek: dayOfWeekEnum('day_week').notNull(),
+});
 
-// export const class_attendances = pgTable('exercises', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: varchar('name', {length:100}).notNull(),
-//   target_muscles: text('target_muscles').notNull(),
-// });
+export const classAttendances = pgTable('class_attendances', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').references(
+    () => classSchedules.id, { onDelete: 'cascade' }
+  ).notNull(),
+  studentId: uuid('student_id').references(
+    () => students.id, { onDelete: 'cascade' }
+  ).notNull(),
+  attendedAt: timestamp('attended_at').defaultNow().notNull(),
+});
 
-// export const payments = pgTable('payments', {
-//   id: uuid('id').defaultRandom().primaryKey(),
-//   name: varchar('name', {length:100}).notNull(),
-//   target_muscles: text('target_muscles').notNull(),
-// });
+export const expenseBills = pgTable('expense_bills', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  category: expenseCategoryEnum('category').notNull(),
+  description: text('description').notNull(),
+  amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+  dueDate: date('due_date').notNull(),
+  paymentDate: date('payment_date'),
+  type: varchar('type', { length: 100 }),
+});
+
+export const payments = pgTable('payments', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  studentPlanId: uuid('student_plan_id').references(
+    () => studentPlan.id, { onDelete: 'restrict' }
+  ).notNull(),
+  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
+  dueDate: date('due_date').notNull(),
+  paymentDate: date('payment_date'),
+  status: paymentStatusEnum('status').notNull(),
+});

@@ -1,7 +1,7 @@
 # Project Roadmap & Task Backlog
 
 ## Phase 1: Core Database & Auth
-- [ ] Define remaining tables (financial ledger, exercises, workouts, audits)
+- [X] Define remaining tables (financial ledger, exercises, workouts, audits)
 - [ ] Verify local database connectivity and run initial migration via Drizzle Kit
 - [ ] Setup Better Auth
 - [ ] Setup shadcn-ui
