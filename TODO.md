@@ -5,6 +5,10 @@
 - [X] Verify local database connectivity and run initial migration via Drizzle Kit
 - [X] Setup Better Auth
 - [X] Setup shadcn-ui
+- [ ] Clean Code practices
+    - [ ] Naming conventions
+    - [ ] Separate database schema into a folder, because it does not follow the single responsability rule.
+    - [ ] Refactor db env module import due to touching the file system and environment.
 - [ ] Implement Sign-Up page (`/sign-up`)
 - [ ] Implement Sign-In page (`/sign-in`)
  

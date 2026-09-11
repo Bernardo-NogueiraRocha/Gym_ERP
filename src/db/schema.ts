@@ -1,21 +1,21 @@
 import { pgTable, uuid, text, timestamp, numeric, varchar, char, pgEnum, date, integer, time, boolean } from 'drizzle-orm/pg-core';
 
-export const student_status_enum = pgEnum('status', ['ACTIVE', 'SUSPENDED', 'CANCELLED']);
+export const student_status_enum = pgEnum('status', ['active', 'suspended', 'cancelled']);
 
 export const students = pgTable('students', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
-  documentCpf: char('document_cpf', { length: 11 }).unique(),
-  photoUrl: text('photo_url'),
+  documentCPF: char('document_cpf', { length: 11 }).unique(),
+  photoURL: text('photo_url'),
   address: text('address'),
-  status: student_status_enum('status').default('ACTIVE').notNull(),
+  status: student_status_enum('status').default('active').notNull(),
   email: text('email').notNull().unique(),
   notesHistory: text('notes_history'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
-export const billing_enum = pgEnum('billing_cycle', ['MENSAL', 'QUARTERLY', 'SEMIANNUAL', 'ANNUAL']);
+export const billing_enum = pgEnum('billing_cycle', ['mensal', 'quarterly', 'semiannual', 'annual']);
 
 export const plans = pgTable('plans', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -49,15 +49,15 @@ export const studentPlan = pgTable('student_plan', {
 });
 
 export const expenseCategoryEnum = pgEnum('expense_category', [
-  'Salary', 'Machinery', 'Repair', 'Cleaning', 'Monthly', 'Supplies', 'Rent', 'Loans'
+  'salary', 'machinery', 'repair', 'cleaning', 'monthly', 'supplies', 'rent', 'loans'
 ]);
 
 export const dayOfWeekEnum = pgEnum('day_of_week', [
-  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
 ]);
 
 export const paymentStatusEnum = pgEnum('payment_status', [
-  'Pending', 'Completed', 'Overdue'
+  'pending', 'completed', 'overdue'
 ]);
 
 export const professionals = pgTable('professionals', {
