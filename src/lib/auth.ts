@@ -1,3 +1,4 @@
+// src/lib/auth.ts
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '@/db';
@@ -10,7 +11,18 @@ export const auth = betterAuth({
       ...schema,
     },
   }),
+
   emailAndPassword: {
     enabled: true,
+
+    resetPasswordTokenExpiresIn: 60 * 60,
+
+    revokeSessionsOnPasswordReset: true,
+
+    async sendResetPassword({ user, url }) {
+      console.log(
+        `Password reset link for ${user.email}: ${url}`
+      );
+    },
   },
 });

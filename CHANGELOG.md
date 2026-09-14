@@ -25,3 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shadcn installation
 - Auth configuration with Better Auth: Catch-all routes with src/app/api/auth/[...all], so that API calls for authentication can be handled dynamically and managed by src/app/lib/auth.ts.
 
+## [0.1.4] - 2026-09-14
+- Server actions for authentication, creates Better Auth user and student in db.
+- proxy for cookie management and route limits for unlogged users (dashboard)
+- Initial Sign-up and sign-in page
+- Configurations for forgot-password and reset password pages
+- Font customization from google (Roboto font)
