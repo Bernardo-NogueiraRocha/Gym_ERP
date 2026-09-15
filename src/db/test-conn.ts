@@ -1,11 +1,12 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
-import { db } from './index';
+import { getDb } from './index';
 import { sql } from 'drizzle-orm';
 
 async function testConnection() {
   try {
+    const db = getDb();
     const result = await db.execute(
       sql`SELECT NOW() as current_time, current_database() as db_name;`
     );

@@ -3,14 +3,19 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-dotenv.config({ path: '.env.local' });
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
-const connectionString = process.env.DATABASE_URL;
+export function getDb() {
+  if (_db) return _db;
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL environment variable is missing.');
+  dotenv.config({ path: '.env.local' });
+
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is missing.');
+  }
+
+  const client = postgres(connectionString, { prepare: false });
+  _db = drizzle(client, { schema });
+  return _db;
 }
-
-const client = postgres(connectionString, { prepare: false });
-
-export const db = drizzle(client, { schema });

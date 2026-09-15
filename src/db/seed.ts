@@ -1,9 +1,10 @@
-import {db} from '@/db';
+import { getDb } from '@/db';
 import * as schema from '@/db/schema';
 import { sec } from 'better-auth/plugins';
 
 async function main() {
     try{
+        const db = getDb();
         await db.delete(schema.students);
 
         await db.insert(schema.students).values([

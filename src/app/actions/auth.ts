@@ -2,7 +2,7 @@
 'use server';
 
 import { auth } from '@/lib/auth';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { students } from '@/db/schema';
 import { headers } from 'next/headers';
 
@@ -29,7 +29,7 @@ export async function registerStudentAction(formData: {
     }
 
     // 2. Insert into domain table linked via userId
-    await db.insert(students).values({
+    await getDb().insert(students).values({
       userId: authResult.user.id,
       cpf: formData.cpf,
       phone: formData.phone || null,

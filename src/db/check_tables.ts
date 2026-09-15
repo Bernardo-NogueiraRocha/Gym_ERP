@@ -1,8 +1,9 @@
-import { db } from './index';
+import { getDb } from './index';
 import { sql } from 'drizzle-orm';
 
 async function checkTables() {
   try {
+    const db = getDb();
     const result = await db.execute(sql`
       SELECT table_name 
       FROM information_schema.tables 
