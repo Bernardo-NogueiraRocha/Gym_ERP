@@ -31,3 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial Sign-up and sign-in page
 - Configurations for forgot-password and reset password pages
 - Font customization from google (Roboto font)
+
+## [0.1.5] - 2026-09-15
+- Seeding script with user/account creation

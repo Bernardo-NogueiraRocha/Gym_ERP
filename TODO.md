@@ -10,9 +10,9 @@
 - [X] CRUD Better auth Users
     - [X] Sign-up
     - [X] Sign-in
-    - [ ] Forgot Password
+    - [ ] Forgot Password ()
     - [ ] Delete Account
-- [ ] Script for seeding database
+- [X] Script for seeding database
 - [ ] Financial metrics
     - [ ] Input cash flow
     - [ ] Cash expenditures
