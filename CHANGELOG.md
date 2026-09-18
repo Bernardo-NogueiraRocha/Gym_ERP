@@ -34,3 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.5] - 2026-09-15
 - Seeding script with user/account creation
+
+## [0.1.6] - 2026-09-18
+- Sign-out page:
+  - Redirect to sign-in
+  - Revoke user session
+- Session management learning

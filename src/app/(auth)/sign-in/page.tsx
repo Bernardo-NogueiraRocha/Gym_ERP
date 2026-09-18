@@ -21,11 +21,11 @@ export default function SignInPage() {
       {
         email,
         password,
-        callbackURL: '/dashboard',
+        callbackURL: '/',
       },
       {
         onSuccess: () => {
-          router.push('/dashboard');
+          router.push('/');
           router.refresh();
         },
         onError: (ctx) => {

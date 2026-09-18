@@ -136,11 +136,65 @@ Inngest — background jobs and scheduled tasks.
 ## 12. Security & LGPD
 
 ## 13. Roadmap
-Planned additions for MVP:
-* Chart.js for chart exhibition in dashboards
-* 
+### MVP
+* Main workflow:
+1) Admin registers students and professionals
+2) Professionals creates workouts and associates to a specific student
+3) Student access their own workout and personal informations
 
-Planned production architecture:
+* Authentication and onboarding
+  * Sign-up
+  * Sign-in
+  * Sign-out
+  * Persistent sessions
+  * Password recovery
+  * Initial onboarding
+  * Role definition
+* Rules:
+  * Non-authenticated user does not access the system
+  * Authenticated users have a defined role
+  * User access only role defined features
+  * Registering cannot allow any person to become an ADMIN.
+**Current Status**:
+
+* Users and authorization
+* Student management
+* Professional management
+  * CRUD
+  * Student link
+  * Student consulting
+  * Rules:
+    * A professional can view and manage workouts only for students assigned to them.
+
+* Exercises
+  * Create
+  * Edit/Update
+  * List
+  * Visualize
+  * Delete
+* Workouts
+  * Create
+  * Edit
+  * Link to student
+  * Add exercises
+  * Define repetitions and sets
+  * Student visualization
+* Initial Dashboards:
+  * Admin: Total of students, professionals, active students, shortcuts for registering.
+  * Professional: Associated students, recent workouts, shortcuts for creating workouts, students without workouts.
+  * Student: My workouts, current workout, personal information.
+
+* **Out of scope**:
+  * Financials;
+  * Plans, promotions, renewals, freezing memberships.
+  * Contracts, document generation;
+  * Notifications and background jobs;
+  * Advanced reports and visualizations;
+  * Mobile app;
+  * Public API for external integration;
+  * AWS deploy;
+
+### Planned production architecture
 * Cloud based deployment in Cloud:AWS
   * AWS RDS for
   * AWS S3 for storage

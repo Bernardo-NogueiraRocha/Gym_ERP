@@ -23,3 +23,5 @@ export const dayOfWeekEnum = pgEnum('day_of_week', [
 export const paymentStatusEnum = pgEnum('payment_status', [
   'pending', 'completed', 'overdue'
 ]);
+
+export const userRole = pgEnum('user_role',['student', 'professional', 'admin']);
