@@ -12,3 +12,4 @@ export * from './classSchedules';
 export * from './workout_items';
 export * from './exercises';
 export * from './expenseBills';
+export * from './professionals_students'

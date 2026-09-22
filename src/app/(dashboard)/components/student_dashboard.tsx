@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { user, workouts, workoutItems, exercises, students } from '@/db/schema';
+import { workouts, workoutItems, exercises, students } from '@/db/schema';
 import { and, between, eq, sql } from "drizzle-orm";
 
 async function getStudentData(userId: string) {
@@ -43,6 +43,26 @@ async function getWorkoutItems(workoutId: string) {
         .where(eq(workoutItems.workoutId, workoutId));
 }
 
+function WorkoutItemsList({ workoutItems }: { workoutItems: Awaited<ReturnType<typeof getWorkoutItems>> }) {
+    if (workoutItems.length === 0) {
+        return (
+            <div className="rounded-md bg-zinc-900 p-4 text-sm text-zinc-400">
+                No workout items were added to this workout.
+            </div>
+        );
+    }
+
+    return (
+        <ol className="list-decimal list-inside space-y-1">
+            {workoutItems.map((item, index) => (
+                <li key={item.exercise_name || index}>    
+                    <span className="font-medium">{item.exercise_name}</span>: {item.sets} sets for {item.reps} reps
+                </li>
+            ))}
+        </ol>
+    );
+}
+
 export async function StudentDashboard({ userId }: { userId: string }) {
     const studentData = await getStudentData(userId);
 
@@ -69,15 +89,7 @@ export async function StudentDashboard({ userId }: { userId: string }) {
             <h3>Start date: {currentWorkout.startDate}</h3>
             <h3>End date: {currentWorkout.endDate}</h3>
 
-            {currentWorkoutItems.length === 0 ? (
-                <p>No exercises listed in this workout plan.</p>
-            ) : (
-                currentWorkoutItems.map((item, index) => (
-                    <p key={index}>
-                        {index + 1}) {item.exercise_name}: {item.sets} sets, {item.reps} repetitions with {item.restSeconds} seconds of rest. Targets: {item.targetMuscles}
-                    </p>
-                ))
-            )}
+            <WorkoutItemsList workoutItems={currentWorkoutItems}/>
         </div>
     );
 }
