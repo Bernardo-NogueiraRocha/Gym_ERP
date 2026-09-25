@@ -13,6 +13,9 @@
     - [X] Sign-out
     - [ ] Forgot Password ()
     - [ ] Delete Account
+    - [ ] Plans page
+    - [ ] Membership checkout
+    - [ ] Onboarding (user to student/professional/admin)
 - [X] Script for seeding database
 - [ ] Financial metrics
     - [ ] Input cash flow

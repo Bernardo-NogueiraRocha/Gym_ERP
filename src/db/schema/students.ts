@@ -1,7 +1,8 @@
-import { 
-  pgTable, uuid, text, timestamp, varchar} from 'drizzle-orm/pg-core';
+import {
+  pgTable, uuid, text, timestamp, varchar
+} from 'drizzle-orm/pg-core';
 import { studentStatusEnum } from './enums';
-import {user} from './auth';
+import { user } from './auth';
 
 export const students = pgTable('students', {
   id: uuid('id').defaultRandom().primaryKey(),

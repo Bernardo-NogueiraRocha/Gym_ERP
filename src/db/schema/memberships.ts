@@ -1,5 +1,6 @@
-import { 
-  pgTable, uuid, text, numeric, date} from 'drizzle-orm/pg-core';
+import {
+  pgTable, uuid, text, numeric, date
+} from 'drizzle-orm/pg-core';
 import { students } from './students';
 import { plans } from './plans';
 import { membershipStatusEnum } from './enums';

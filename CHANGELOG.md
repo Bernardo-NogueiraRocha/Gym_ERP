@@ -40,3 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Redirect to sign-in
   - Revoke user session
 - Session management learning
+
+## [0.1.7] - 2026-09-24 (Unfinished)
+- Plans Page
+- Checkout plan page
+- Server action for membership creation
+
+To finish:
+[ ] Cookie verification in each page
+[ ] Proxy configuration
+[ ] Checkout 
