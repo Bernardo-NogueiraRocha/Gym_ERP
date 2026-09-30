@@ -26,7 +26,6 @@ export async function registerStudentAction(
             headers: await headers(),
         });
 
-        // Better Auth succeeded, so authResult should contain the user.
         if (!authResult.user) {
             return {
                 success: false,
@@ -34,9 +33,13 @@ export async function registerStudentAction(
             };
         }
 
+        // 1. Strip non-digit characters from CPF ("123456789-10" -> "12345678910")
+        const cleanCpf = formData.cpf.replace(/\D/g, '');
+
+        // 2. Insert into PostgreSQL
         await getDb().insert(students).values({
             userId: authResult.user.id,
-            cpf: formData.cpf,
+            cpf: cleanCpf,
             phone: formData.phone || null,
             status: 'active',
         });
@@ -47,12 +50,12 @@ export async function registerStudentAction(
         };
 
     } catch (error) {
-        console.error('Registration error:', error);
+        // Log the full error stack trace for debugging
+        console.error('Registration error details:', error);
 
         return {
             success: false,
-            error:  error instanceof Error ? error.message
-                    : 'An unexpected error occurred.',
+            error: error instanceof Error ? error.message : 'An unexpected error occurred.',
         };
     }
 }

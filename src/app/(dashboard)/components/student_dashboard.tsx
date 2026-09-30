@@ -1,6 +1,8 @@
 import { getDb } from "@/db";
 import { workouts, workoutItems, exercises, students } from '@/db/schema';
 import { and, between, eq, sql } from "drizzle-orm";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function getStudentData(userId: string) {
     const [userData] = await getDb()
@@ -67,7 +69,14 @@ export async function StudentDashboard({ userId }: { userId: string }) {
     const studentData = await getStudentData(userId);
 
     if (!studentData) {
-        return <div>No student profile found for this account.</div>;
+        return (
+            <div>
+                <div>No student membership found for this account.</div>
+                <Link href='/sign-in'>
+                    <Button size='lg' className="bg-white text-black">Plans</Button>
+                </Link>
+            </div>
+        );
     }
 
     const currentWorkout = await getCurrentWorkout(studentData.studentId);

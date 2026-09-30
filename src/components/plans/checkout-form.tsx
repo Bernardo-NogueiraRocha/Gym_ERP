@@ -19,23 +19,17 @@ export function CheckoutForm({ planId, userId }: CheckoutFormProps) {
     event.preventDefault();
     setErrorMessage(null);
 
-    const formData = new FormData(event.currentTarget);
-    const cpf = formData.get('cpf') as string;
-    const phone = formData.get('phone') as string;
-
     startTransition(async () => {
       const result = await subscribeToPlanAction({
         planId,
         userId,
-        cpf,
-        phone,
       });
 
       if (!result.success) {
         setErrorMessage(result.error ?? 'An unexpected error occurred.');
       } else {
         // Redirect or refresh upon success
-        router.push('/dashboard');
+        router.push('/');
       }
     });
   };

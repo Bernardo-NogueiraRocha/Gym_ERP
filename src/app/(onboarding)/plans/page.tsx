@@ -44,6 +44,8 @@ function PlanCards({ plansArray, userId }: { plansArray: Awaited<ReturnType<type
     );
 }
 
+
+
 export default async function PlansPage({ userId }: { userId: string }) {
     const plans = await getPlans();
 

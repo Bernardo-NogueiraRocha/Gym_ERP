@@ -50,3 +50,8 @@ To finish:
 [ ] Cookie verification in each page
 [ ] Proxy configuration
 [ ] Checkout 
+
+## [0.1.7] - 2026-09-30
+- Proxy Configuration
+- Plans Page
+- Server action for membership creation
