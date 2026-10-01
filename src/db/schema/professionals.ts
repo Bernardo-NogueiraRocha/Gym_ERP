@@ -1,5 +1,6 @@
 import { 
-  pgTable, uuid, text, varchar} from 'drizzle-orm/pg-core';
+  pgTable, uuid, text, varchar,
+  boolean} from 'drizzle-orm/pg-core';
 import { user } from './auth';
 
 export const professionals = pgTable('professionals', {
@@ -9,4 +10,5 @@ export const professionals = pgTable('professionals', {
     .unique(),
   cref: varchar('cref', { length: 20 }),
   specialty: text('specialty'),
+  approved : boolean('approved').default(false).notNull()
 });

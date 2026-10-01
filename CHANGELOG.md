@@ -55,3 +55,4 @@ To finish:
 - Proxy Configuration
 - Plans Page
 - Server action for membership creation
+- Code refactoring (naming conventions, warning corrections, linting)

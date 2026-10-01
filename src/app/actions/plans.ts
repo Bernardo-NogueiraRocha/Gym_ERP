@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from "@/db";
-import { students, memberships, billingEnum, plans, user } from "@/db/schema";
+import { students, memberships, billingEnum, plans } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 

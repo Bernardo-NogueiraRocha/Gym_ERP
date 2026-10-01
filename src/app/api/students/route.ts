@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { user, students} from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export async function GET() {
   // const result = await getDb().select({name:user.name, email: user.email})

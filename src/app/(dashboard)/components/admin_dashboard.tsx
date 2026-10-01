@@ -51,6 +51,7 @@ export async function AdminDashboard({ userId }: { userId: string }) {
     const activeStudents = await getStudentsByStatus('active');
     const suspendedStudents = await getStudentsByStatus('suspended');
     const cancelledStudents = await getStudentsByStatus('cancelled');
+    const totalProfessionals = await getTotalProfessionals();
     return (
         <div>
             <h1>Hello, User ID: {userData.name}</h1>
@@ -58,6 +59,7 @@ export async function AdminDashboard({ userId }: { userId: string }) {
             <p>Total number of active students: {activeStudents}</p>
             <p>Total number of suspended students: {suspendedStudents}</p>
             <p>Total number of cancelled students: {cancelledStudents}</p>
+            <p>Total number of professionals:{totalProfessionals}</p>
             <ActionButtons />
         </div>
     );

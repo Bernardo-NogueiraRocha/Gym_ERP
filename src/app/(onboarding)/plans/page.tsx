@@ -6,7 +6,7 @@ async function getPlans() {
     const result = await getDb()
         .select()
         .from(plans);
-        
+
     return result;
 }
 
@@ -14,18 +14,18 @@ async function getPlans() {
 type Plan = Awaited<ReturnType<typeof getPlans>>[number];
 
 // the props object with the single Plan type
-function PlanCard({ plan, userId }: { plan: Plan, userId:string }) {
+function PlanCard({ plan }: { plan: Plan }) {
     return (
         <li>
             <span>
-                {plan.name} <br/> ${plan.basePrice} <br /> 
+                {plan.name} <br /> ${plan.basePrice} <br />
             </span>
-            <PlanButton planId={plan.id}/>
+            <PlanButton planId={plan.id} />
         </li>
     );
 }
 
-function PlanCards({ plansArray, userId }: { plansArray: Awaited<ReturnType<typeof getPlans>>, userId : string }) {
+function PlanCards({ plansArray }: { plansArray: Awaited<ReturnType<typeof getPlans>> }) {
     if (plansArray.length === 0) {
         return (
             <div className="rounded-md bg-zinc-900 p-4 text-sm text-zinc-400">
@@ -38,7 +38,7 @@ function PlanCards({ plansArray, userId }: { plansArray: Awaited<ReturnType<type
         <ul className="grid grid-cols-4">
             {plansArray.map((plan) => (
                 // The key prop belongs inside the map loop
-                <PlanCard key={plan.id} plan={plan} userId={userId} />
+                <PlanCard key={plan.id} plan={plan} />
             ))}
         </ul>
     );
@@ -46,12 +46,12 @@ function PlanCards({ plansArray, userId }: { plansArray: Awaited<ReturnType<type
 
 
 
-export default async function PlansPage({ userId }: { userId: string }) {
+export default async function PlansPage() {
     const plans = await getPlans();
 
     return (
         <div>
-            <PlanCards plansArray={plans} userId={userId} />
+            <PlanCards plansArray={plans} />
         </div>
     );
 }

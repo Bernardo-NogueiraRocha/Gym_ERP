@@ -117,6 +117,8 @@ Requirements:
 | ORM                  | Drizzle                  | Type-safe database access and schema management.                               |
 | Authentication       | Better Auth              | Manage authentication and user sessions.                                       |
 | Local Environment    | Docker Compose           | Run PostgreSQL consistently in development.                                    |
+| Input validation    | Zod           | Define and validate schemas and inputs for complex types (CPF, phone, email)|
+
 ### Planned Infrastructure
 
 AWS EC2 — application deployment.

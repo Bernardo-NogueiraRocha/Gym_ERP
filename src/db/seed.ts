@@ -193,9 +193,9 @@ async function main() {
         const professionalRows = await db
             .insert(schema.professionals)
             .values([
-                { userId: 'usr_prof_01', cref: '012345678/G-SP', specialty: 'Musculação e hipertrofia' },
-                { userId: 'usr_prof_02', cref: '876543210/G-SP', specialty: 'CrossFit nível 2' },
-                { userId: 'usr_prof_03', cref: '456789123/G-SP', specialty: 'Pilates e mobilidade' },
+                { userId: 'usr_prof_01', cref: '012345678/G-SP', specialty: 'Musculação e hipertrofia', approved: true },
+                { userId: 'usr_prof_02', cref: '876543210/G-SP', specialty: 'CrossFit nível 2', approved: true},
+                { userId: 'usr_prof_03', cref: '456789123/G-SP', specialty: 'Pilates e mobilidade' , approved: true},
             ])
             .returning();
 
@@ -244,7 +244,7 @@ async function main() {
             ])
             .returning();
         
-        const professionalStudentRows = await getDb()
+        await getDb()
             .insert(schema.professionalStudents)
             .values(
                 [
@@ -252,8 +252,7 @@ async function main() {
                     {professionalId: professionalRows[1].id, studentId: anna.id},
                     {professionalId: professionalRows[2].id, studentId: julia.id},
                 ]
-            )
-            .returning();
+            );
 
         const [thiagoA, thiagoB, annaW, juliaW] = workoutRows;
         const [bench, squat, deadlift, pulldown, legPress, shoulderPress, bicepsCurl, plank] = exerciseRows;
