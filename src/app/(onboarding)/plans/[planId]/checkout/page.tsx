@@ -11,6 +11,7 @@ export default async function CheckoutPage({params,}: {params: Promise<{ planId:
     headers: await headers(),
   });
 
+  console.log(session)
   // Protect route: Redirect to sign-in if unauthenticated
   if (!session?.user) {
     redirect('/sign-in');

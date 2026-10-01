@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { registerStudentAction } from '@/app/actions/auth';
+import { isValidCPF, isValidPhone, formatCPF, formatPhone } from '@/schemas/student';
+
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -19,30 +21,41 @@ export default function SignUpPage() {
     phone: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]:
+        name === "cpf"
+          ? formatCPF(value)
+          : name === "phone"
+            ? formatPhone(value)
+            : value,
     }));
-  };
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      const formData = new FormData(e.currentTarget);
       const result = await registerStudentAction(formData);
 
       if (!result.success) {
         setError(result.error || 'Failed to complete registration.');
       } else {
-        // Navigate to dashboard on success
-        router.push('/dashboard');
+        router.push('/plans');
         router.refresh();
       }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred.'
+      );
     } finally {
       setLoading(false);
     }
@@ -119,6 +132,7 @@ export default function SignUpPage() {
             <label className="block text-xs font-medium text-slate-300 mb-1">
               CPF
             </label>
+
             <input
               type="text"
               name="cpf"
@@ -129,12 +143,26 @@ export default function SignUpPage() {
               placeholder="000.000.000-00"
               className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
             />
+
+            {formData.cpf.replace(/\D/g, "").length === 11 && (
+              <p
+                className={`mt-1 text-xs ${isValidCPF(formData.cpf)
+                  ? "text-green-400"
+                  : "text-red-400"
+                  }`}
+              >
+                {isValidCPF(formData.cpf)
+                  ? "✓ Valid CPF"
+                  : "✕ Invalid CPF"}
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1">
               Phone Number
             </label>
+
             <input
               type="tel"
               name="phone"
@@ -143,6 +171,19 @@ export default function SignUpPage() {
               placeholder="(11) 99999-9999"
               className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
             />
+
+            {formData.phone.replace(/\D/g, "").length === 11 && (
+              <p
+                className={`mt-1 text-xs ${isValidPhone(formData.phone)
+                  ? "text-green-400"
+                  : "text-red-400"
+                  }`}
+              >
+                {isValidPhone(formData.phone)
+                  ? "✓ Valid phone number"
+                  : "✕ Invalid phone number"}
+              </p>
+            )}
           </div>
         </div>
 

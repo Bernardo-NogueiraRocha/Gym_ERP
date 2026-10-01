@@ -4,27 +4,40 @@ import { auth } from '@/lib/auth';
 import { getDb } from '@/db';
 import { students } from '@/db/schema';
 import { headers } from 'next/headers';
-
-type RegisterStudentInput = {
-    email: string;
-    password: string;
-    name: string;
-    cpf: string;
-    phone?: string;
-};
+import { registerStudentSchema } from '@/schemas/student';
 
 export async function registerStudentAction(
-    formData: RegisterStudentInput
+    formData: FormData
 ) {
+    const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        cpf: formData.get('cpf'),
+        phone: formData.get('phone'),
+    };
+
+    const result = registerStudentSchema.safeParse(data);
+
+    if (!result.success) {
+        return {
+            success: false,
+            errors: result.error.flatten().fieldErrors,
+        };
+    }
+    console.log(result)
     try {
         const authResult = await auth.api.signUpEmail({
             body: {
-                email: formData.email,
-                password: formData.password,
-                name: formData.name,
+                email: result.data.email,
+                password: result.data.password,
+                name: result.data.name,
             },
             headers: await headers(),
+            
         });
+
+        console.log(authResult)
 
         if (!authResult.user) {
             return {
@@ -32,15 +45,11 @@ export async function registerStudentAction(
                 error: 'User creation failed.',
             };
         }
-
-        // 1. Strip non-digit characters from CPF ("123456789-10" -> "12345678910")
-        const cleanCpf = formData.cpf.replace(/\D/g, '');
-
-        // 2. Insert into PostgreSQL
+        // Insert into PostgreSQL
         await getDb().insert(students).values({
             userId: authResult.user.id,
-            cpf: cleanCpf,
-            phone: formData.phone || null,
+            cpf: result.data.cpf,
+            phone: result.data.phone || null,
             status: 'active',
         });
 
