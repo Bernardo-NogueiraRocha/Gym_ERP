@@ -26,6 +26,7 @@
     - [ ] Naming conventions
     - [X] Separate database schema into a folder, because it does not follow the single responsability rule.
     - [X] Refactor db env module import due to touching the file system and environment.
+
 - [ ] Corrections (priority)
     - [ ] Non-atomic registration and raw error on registerStudentAction
     - [ ] Duplicate dashboards
@@ -35,11 +36,11 @@
     - [ ] Naming inconsistencies
     - [ ] Separate Sign-up for Professionals
 
-- [ ] Input validation (Zod)
-  - [ ] CPF
-  - [ ] Phone
-  - [ ] Email
-  - [ ] Name
+- [X] Input validation (Zod)
+  - [X] CPF
+  - [X] Phone
+  - [x] Email
+  - [x] Name
 
 - [ ] Testing
   - [ ] Unit testing (Vitest)

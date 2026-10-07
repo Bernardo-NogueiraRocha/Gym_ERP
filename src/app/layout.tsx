@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import { Navbar } from "@/components/navbar";
 
 const roboto = Roboto({
   weight: ['400', '500', '700'],
@@ -24,6 +25,7 @@ export default function RootLayout({
       className={`${roboto.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-roboto bg-slate-950 text-slate-100">
+        <Navbar />
         {children}
       </body>
     </html>

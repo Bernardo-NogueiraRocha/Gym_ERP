@@ -2,12 +2,31 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-export function PlanButton({ planId }: { planId: string }) {
-  return (
-    <Button className="w-full mt-4">
-      <Link href={`/plans/${planId}/checkout`}>
-        Select Plan
-      </Link>
-    </Button>
-  );
+type PlanButtonProps = {
+    planId: string;
+    isCurrentPlan?: boolean;
+};
+
+export function PlanButton({
+    planId,
+    isCurrentPlan = false,
+}: PlanButtonProps) {
+    if (isCurrentPlan) {
+        return (
+            <Button
+                className="mt-4 w-full"
+                disabled
+            >
+                Current Plan
+            </Button>
+        );
+    }
+
+    return (
+        <Button className="mt-4 w-full">
+            <Link href={`/plans/${planId}/checkout`}>
+                Select Plan
+            </Link>
+        </Button>
+    );
 }
