@@ -56,3 +56,7 @@ To finish:
 - Plans Page
 - Server action for membership creation
 - Code refactoring (naming conventions, warning corrections, linting)
+
+## [0.1.8] - 2026-10-08
+- Initial account and register workout page definition
+- Student dashboard with list of current workouts, clickable for details (exercises, sets, repetitions)

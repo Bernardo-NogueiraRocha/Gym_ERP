@@ -13,6 +13,7 @@
     - [X] Sign-out
     - [ ] Forgot Password ()
     - [ ] Delete Account
+    - [ ] Account page (with membership details, status)
     - [X] Plans page
     - [X] Membership checkout
     - [ ] Onboarding (user to student/professional/admin)
@@ -60,6 +61,6 @@
 ## Phase 3: Frontend
 - [X] Implement Sign-Up page (`/sign-up`)
 - [X] Implement Sign-In page (`/sign-in`)
-- [ ] Create Student Dashboard (`/dashboard` for student role)
+- [X] Create Student Dashboard (`/dashboard` for student role)
 - [ ] Create Admin Dashboard (`/dashboard` for admin role)
 - [ ] Create Professional Dashboard (`/dashboard` for professional role)
