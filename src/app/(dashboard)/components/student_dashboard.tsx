@@ -1,8 +1,9 @@
-import { getDb } from "@/db";
-import { workouts, workoutItems, exercises, students } from '@/db/schema';
-import { and, between, eq, sql } from "drizzle-orm";
 import Link from "next/link";
+import { getDb } from "@/db";
+import { workouts, workoutItems, exercises, students } from "@/db/schema";
+import { and, gte, lte, eq, or, isNull } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
+import { WorkoutCard } from "@/components/workout-card"; // Import Client Component
 
 async function getStudentData(userId: string) {
     const [userData] = await getDb()
@@ -14,55 +15,42 @@ async function getStudentData(userId: string) {
     return userData ?? null;
 }
 
-async function getCurrentWorkout(studentId: string) {
-    const todayStr = new Date().toISOString().split('T')[0];
+async function getCurrentWorkoutsWithItems(studentId: string) {
+    const todayStr = new Date().toISOString().split("T")[0];
 
-    const [result] = await getDb()
+    const activeWorkouts = await getDb()
         .select()
         .from(workouts)
         .where(
             and(
                 eq(workouts.studentId, studentId),
-                between(sql`${todayStr}`, workouts.startDate, workouts.endDate)
+                lte(workouts.startDate, todayStr),
+                or(gte(workouts.endDate, todayStr), isNull(workouts.endDate))
             )
-        )
-        .limit(1);
+        );
 
-    return result ?? null;
-}
+    if (!activeWorkouts.length) return [];
 
-async function getWorkoutItems(workoutId: string) {
-    return await getDb()
+    const workoutIds = activeWorkouts.map((w) => w.id);
+
+    const items = await getDb()
         .select({
+            workoutId: workoutItems.workoutId,
+            id: workoutItems.id,
             exercise_name: exercises.name,
             reps: workoutItems.reps,
             sets: workoutItems.sets,
             restSeconds: workoutItems.restSeconds,
-            targetMuscles: exercises.targetMuscles
+            targetMuscles: exercises.targetMuscles,
         })
         .from(workoutItems)
         .innerJoin(exercises, eq(exercises.id, workoutItems.exerciseId))
-        .where(eq(workoutItems.workoutId, workoutId));
-}
+        .where(or(...workoutIds.map((id) => eq(workoutItems.workoutId, id))));
 
-function WorkoutItemsList({ workoutItems }: { workoutItems: Awaited<ReturnType<typeof getWorkoutItems>> }) {
-    if (workoutItems.length === 0) {
-        return (
-            <div className="rounded-md bg-zinc-900 p-4 text-sm text-zinc-400">
-                No workout items were added to this workout.
-            </div>
-        );
-    }
-
-    return (
-        <ol className="list-decimal list-inside space-y-1">
-            {workoutItems.map((item, index) => (
-                <li key={item.exercise_name || index}>    
-                    <span className="font-medium">{item.exercise_name}</span>: {item.sets} sets for {item.reps} reps
-                </li>
-            ))}
-        </ol>
-    );
+    return activeWorkouts.map((workout) => ({
+        ...workout,
+        items: items.filter((item) => item.workoutId === workout.id),
+    }));
 }
 
 export async function StudentDashboard({ userId }: { userId: string }) {
@@ -70,35 +58,38 @@ export async function StudentDashboard({ userId }: { userId: string }) {
 
     if (!studentData) {
         return (
-            <div>
-                <div>No student membership found for this account.</div>
-                <Link href='/sign-in'>
-                    <Button size='lg' className="bg-white text-black">Plans</Button>
+            <div className="mx-auto max-w-md rounded-xl border border-zinc-800 bg-zinc-900/40 p-8 text-center">
+                <h2 className="text-lg font-semibold text-zinc-100">No Active Membership</h2>
+                <p className="mt-1 text-sm text-zinc-400">
+                    No student membership found associated with this account.
+                </p>
+                <Link href="/sign-in" className="mt-6 inline-block">
+                    <Button size="lg" className="w-full">
+                        Explore Plans
+                    </Button>
                 </Link>
             </div>
         );
     }
 
-    const currentWorkout = await getCurrentWorkout(studentData.studentId);
+    const currentWorkouts = await getCurrentWorkoutsWithItems(studentData.studentId);
 
-    if (!currentWorkout) {
+    if (!currentWorkouts.length) {
         return (
-            <div>
-                <h2>No active workout scheduled.</h2>
-                <p>Enjoy your rest day!</p>
+            <div className="mx-auto max-w-lg rounded-xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
+                <div className="mx-auto mb-3 text-3xl">🧘‍♂️</div>
+                <h2 className="text-xl font-bold text-zinc-100">No active workout scheduled</h2>
+                <p className="mt-1 text-sm text-zinc-400">Enjoy your rest day!</p>
             </div>
         );
     }
 
-    const currentWorkoutItems = await getWorkoutItems(currentWorkout.id);
-
     return (
-        <div>
-            <h2>Workout title: {currentWorkout.title}</h2>
-            <h3>Start date: {currentWorkout.startDate}</h3>
-            <h3>End date: {currentWorkout.endDate}</h3>
-
-            <WorkoutItemsList workoutItems={currentWorkoutItems}/>
+        <div className="mx-auto max-w-3xl space-y-4 mt-5">
+            <h1 className="text-2xl font-bold text-white mb-2">Current Workouts</h1>
+            {currentWorkouts.map((workout) => (
+                <WorkoutCard key={workout.id} workout={workout} />
+            ))}
         </div>
     );
 }

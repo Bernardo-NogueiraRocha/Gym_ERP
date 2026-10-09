@@ -5,7 +5,7 @@ export function Navbar() {
   return (
     <nav className="bg-blue-600 font-bold flex justify-between">
 
-      <Link href="/" className="flex gap-2">
+      <Link href="/" className="flex gap-2 ml-3">
         <Image src='/dumbbell.svg' width={30} height={30} alt="Dumbbell (logo for the website)" />
         <span className="p-3">
           Home
