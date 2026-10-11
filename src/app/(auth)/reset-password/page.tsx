@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -48,32 +49,47 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Reset password</h1>
+    <div className='space-y-6'>
+      <div>
+        <h1 className='text-xl font-semibold text-slate-100'>Reset password</h1>
+        <p className='text-xs text-slate-400 mt-1'>Please enter the new password and confirm it.</p>
+      </div>
+      <form onSubmit={handleSubmit} className='space-y-4'>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="New password"
-        required
-      />
+        <input
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="New password"
+          required
+          className='block font-medium text-slate-100 mb-1'
+        />
 
-      <input
-        type="password"
-        value={confirmPassword}
-        onChange={(event) =>
-          setConfirmPassword(event.target.value)
-        }
-        placeholder="Confirm password"
-        required
-      />
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(event) =>
+            setConfirmPassword(event.target.value)
+          }
+          placeholder="Confirm password"
+          required
+          className='block font-medium text-slate-100 mb-1 mt-3'
+        />
 
-      <button type="submit" disabled={loading}>
-        {loading ? 'Resetting...' : 'Reset password'}
-      </button>
+        <Button type="submit" disabled={loading} className='w-full hover:bg-blue-500 bg-blue-400 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2'>
+          {loading ? 'Resetting...' : 'Reset password'}
+        </Button>
 
-      {message && <p>{message}</p>}
-    </form>
+        {message && <p>{message}</p>}
+      </form>
+    </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="text-slate-400 text-center text-sm p-4">Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
