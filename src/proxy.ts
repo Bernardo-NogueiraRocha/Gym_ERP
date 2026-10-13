@@ -8,29 +8,21 @@ export function proxy(request: NextRequest) {
     const isAuthRoute =
         request.nextUrl.pathname.startsWith('/sign-in') ||
         request.nextUrl.pathname.startsWith('/sign-up');
-    
-    const plansPage = request.nextUrl.pathname.startsWith('/plans');
 
-    const isDashboardRoute =
-        request.nextUrl.pathname.startsWith('/dashboard');
+    const isProtectedRoute =
+        request.nextUrl.pathname === '/'
+        //|| request.nextUrl.pathname.startsWith('/register-workout');
 
-    if (isDashboardRoute && !sessionCookie) {
+    if (isProtectedRoute && !sessionCookie) {
         return NextResponse.redirect(
             new URL('/sign-in', request.url)
         );
     }
 
     if (isAuthRoute && sessionCookie) {
-        if (plansPage){
-            return NextResponse.redirect(
-            new URL('/plans', request.url)
-            )
-        }
-        else{
-            return NextResponse.redirect(
-            new URL('/dashboard', request.url)
+        return NextResponse.redirect(
+            new URL('/', request.url)
         );
-        }
     }
 
     return NextResponse.next();
@@ -38,9 +30,9 @@ export function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/dashboard/:path*',
+        '/',
         '/sign-in',
         '/sign-up',
-        '/plans'
+        '/register-workout'
     ],
 };

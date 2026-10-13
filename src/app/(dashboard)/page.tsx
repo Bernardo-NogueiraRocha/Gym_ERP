@@ -9,6 +9,12 @@ import { eq } from "drizzle-orm";
 import { AdminDashboard } from "./components/admin_dashboard";
 import { StudentDashboard } from "./components/student_dashboard";
 import { ProfessionalDashboard } from "./components/professional_dashboard";
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Dashboard | GYM_ERP',
+  description: 'Dashboard for specific roles containing relevant data.',
+};
 
 export default async function DashboardPage() {
     const session = await auth.api.getSession({

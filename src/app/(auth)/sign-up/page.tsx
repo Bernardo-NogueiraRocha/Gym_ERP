@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { registerStudentAction } from '@/app/actions/auth';
 import { isValidCPF, isValidPhone, formatCPF, formatPhone } from '@/schemas/student';
+import type { Metadata } from 'next';
 
+export const metadata: Metadata = {
+  title: 'Sign-Up | GYM_ERP',
+  description: 'Register into GYM_ERP.',
+};
 
 export default function SignUpPage() {
   const router = useRouter();

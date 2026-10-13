@@ -60,3 +60,7 @@ To finish:
 ## [0.1.8] - 2026-10-08
 - Initial account and register workout page definition
 - Student dashboard with list of current workouts, clickable for details (exercises, sets, repetitions)
+
+## [0.1.9] - 2026-10-08
+- Initial Register workout form with exercise selection
+- Database schema definition for workout session, in which the students will record weights, repetitions and if they performed other exercises, such as a cardio session.
