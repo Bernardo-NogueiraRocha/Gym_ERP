@@ -11,6 +11,7 @@ export const workoutItems = pgTable('workout_items', {
   exerciseId: uuid('exercise_id').references(
     () => exercises.id, { onDelete: 'restrict', onUpdate: 'cascade' }
   ).notNull(),
+  position: integer('position').notNull().default(0),
   sets: integer('sets').notNull(),
   reps: integer('reps').notNull(),
   restSeconds: integer('rest_seconds').default(30).notNull(),

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getDb } from "@/db";
 import { workouts, workoutItems, exercises, students } from "@/db/schema";
-import { and, gte, lte, eq, or, isNull } from "drizzle-orm";
+import { and, gte, lte, eq, or, isNull, asc } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { WorkoutCard } from "@/components/workout-card"; // Import Client Component
 
@@ -45,7 +45,8 @@ async function getCurrentWorkoutsWithItems(studentId: string) {
         })
         .from(workoutItems)
         .innerJoin(exercises, eq(exercises.id, workoutItems.exerciseId))
-        .where(or(...workoutIds.map((id) => eq(workoutItems.workoutId, id))));
+        .where(or(...workoutIds.map((id) => eq(workoutItems.workoutId, id))))
+        .orderBy(asc(workoutItems.position));
 
     return activeWorkouts.map((workout) => ({
         ...workout,

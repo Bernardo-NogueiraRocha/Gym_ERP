@@ -258,19 +258,19 @@ async function main() {
         const [bench, squat, deadlift, pulldown, legPress, shoulderPress, bicepsCurl, plank] = exerciseRows;
 
         await db.insert(schema.workoutItems).values([
-            { workoutId: thiagoA.id, exerciseId: bench.id, sets: 4, reps: 10, restSeconds: 60 },
-            { workoutId: thiagoA.id, exerciseId: pulldown.id, sets: 3, reps: 12, restSeconds: 60 },
-            { workoutId: thiagoA.id, exerciseId: legPress.id, sets: 4, reps: 10, restSeconds: 90 },
-            { workoutId: thiagoA.id, exerciseId: bicepsCurl.id, sets: 3, reps: 12, restSeconds: 45 },
-            { workoutId: thiagoB.id, exerciseId: deadlift.id, sets: 4, reps: 6, restSeconds: 120 },
-            { workoutId: thiagoB.id, exerciseId: squat.id, sets: 4, reps: 8, restSeconds: 90 },
-            { workoutId: thiagoB.id, exerciseId: shoulderPress.id, sets: 3, reps: 10, restSeconds: 60 },
-            { workoutId: thiagoB.id, exerciseId: plank.id, sets: 3, reps: 60, restSeconds: 30 },
-            { workoutId: annaW.id, exerciseId: squat.id, sets: 5, reps: 5, restSeconds: 120 },
-            { workoutId: annaW.id, exerciseId: deadlift.id, sets: 3, reps: 5, restSeconds: 150 },
-            { workoutId: annaW.id, exerciseId: shoulderPress.id, sets: 5, reps: 5, restSeconds: 90 },
-            { workoutId: juliaW.id, exerciseId: plank.id, sets: 3, reps: 45, restSeconds: 30 },
-            { workoutId: juliaW.id, exerciseId: legPress.id, sets: 3, reps: 15, restSeconds: 45 },
+            { workoutId: thiagoA.id, exerciseId: bench.id, position: 0, sets: 4, reps: 10, restSeconds: 60 },
+            { workoutId: thiagoA.id, exerciseId: pulldown.id, position: 1, sets: 3, reps: 12, restSeconds: 60 },
+            { workoutId: thiagoA.id, exerciseId: legPress.id, position: 2, sets: 4, reps: 10, restSeconds: 90 },
+            { workoutId: thiagoA.id, exerciseId: bicepsCurl.id, position: 3, sets: 3, reps: 12, restSeconds: 45 },
+            { workoutId: thiagoB.id, exerciseId: deadlift.id, position: 0, sets: 4, reps: 6, restSeconds: 120 },
+            { workoutId: thiagoB.id, exerciseId: squat.id, position: 1, sets: 4, reps: 8, restSeconds: 90 },
+            { workoutId: thiagoB.id, exerciseId: shoulderPress.id, position: 2, sets: 3, reps: 10, restSeconds: 60 },
+            { workoutId: thiagoB.id, exerciseId: plank.id, position: 3, sets: 3, reps: 60, restSeconds: 30 },
+            { workoutId: annaW.id, exerciseId: squat.id, position: 0, sets: 5, reps: 5, restSeconds: 120 },
+            { workoutId: annaW.id, exerciseId: deadlift.id, position: 1, sets: 3, reps: 5, restSeconds: 150 },
+            { workoutId: annaW.id, exerciseId: shoulderPress.id, position: 2, sets: 5, reps: 5, restSeconds: 90 },
+            { workoutId: juliaW.id, exerciseId: plank.id, position: 0, sets: 3, reps: 45, restSeconds: 30 },
+            { workoutId: juliaW.id, exerciseId: legPress.id, position: 1, sets: 3, reps: 15, restSeconds: 45 },
         ]);
 
         // 10. Schedules & Attendances

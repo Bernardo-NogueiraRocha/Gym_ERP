@@ -70,11 +70,16 @@ export default async function RegisterWorkoutPage() {
         );
     }
 
+    if (!professionalData.approved){
+        return (
+            <AccessDenied message="You must be an approved professional in order to access this page." />
+        );
+    }
     const exercise_list = await GetExerciseList();
 
     return (
         <div>
-            <WorkoutRegisterForm professional={professionalData} exercises={exercise_list}/>
+            <WorkoutRegisterForm exercises={exercise_list}/>
         </div>
     );
 }

@@ -5,23 +5,13 @@ import { getSessionCookie } from 'better-auth/cookies';
 export function proxy(request: NextRequest) {
     const sessionCookie = getSessionCookie(request);
 
-    const isAuthRoute =
-        request.nextUrl.pathname.startsWith('/sign-in') ||
-        request.nextUrl.pathname.startsWith('/sign-up');
-
-    const isProtectedRoute =
-        request.nextUrl.pathname === '/'
-        //|| request.nextUrl.pathname.startsWith('/register-workout');
+    // The page validates the session with Better Auth. A stale cookie must not
+    // redirect /sign-in back to / and create a redirect loop.
+    const isProtectedRoute = request.nextUrl.pathname === '/';
 
     if (isProtectedRoute && !sessionCookie) {
         return NextResponse.redirect(
             new URL('/sign-in', request.url)
-        );
-    }
-
-    if (isAuthRoute && sessionCookie) {
-        return NextResponse.redirect(
-            new URL('/', request.url)
         );
     }
 
@@ -31,8 +21,5 @@ export function proxy(request: NextRequest) {
 export const config = {
     matcher: [
         '/',
-        '/sign-in',
-        '/sign-up',
-        '/register-workout'
     ],
 };

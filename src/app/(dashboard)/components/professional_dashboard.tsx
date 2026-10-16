@@ -1,6 +1,8 @@
+import { Button } from "@/components/ui/button";
 import { getDb } from "@/db";
 import { user, professionals, students, professionalStudents } from '@/db/schema';
 import { eq } from "drizzle-orm";
+import Link from 'next/link'
 
 async function getProfessionalData(userId: string) {
     const [professionalData] = await getDb()
@@ -86,6 +88,12 @@ export async function ProfessionalDashboard({ userId }: { userId: string }) {
                 </h2>
 
                 <StudentList students={assignedStudents} />
+            </section>
+            <section>
+                <h1 className="text-lg font-semibold">Would You like to register a workout?</h1>
+                <Link href='/register-workout'>
+                    <Button>Register Workout</Button>
+                </Link>
             </section>
         </div>
     );

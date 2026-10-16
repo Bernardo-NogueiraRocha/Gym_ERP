@@ -2,22 +2,16 @@
 import type { InferSelectModel } from "drizzle-orm";
 import { exercises } from "@/db/schema";
 import { ExerciseSelector } from "./exercise-selector";
-import { useState } from "react";
 
 type Exercise = InferSelectModel<typeof exercises>;
 
+interface ExerciseListProps {
+    exerciseList: Exercise[];
+    selectedIds: string[];
+    onToggle: (id: string) => void;
+}
 
-export function ExerciseList({ exerciseList }: { exerciseList: Exercise[] }) {
-    const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
-
-    const toggleExercise = (id: string) => {
-        setSelectedExerciseIds((prev) =>
-            prev.includes(id)
-                ? prev.filter((selectedId) => selectedId !== id)
-                : [...prev, id]
-        );
-    };
-
+export function ExerciseList({ exerciseList, selectedIds, onToggle }: ExerciseListProps) {
     if (!exerciseList || exerciseList.length === 0) {
         return (
             <div>
@@ -25,15 +19,15 @@ export function ExerciseList({ exerciseList }: { exerciseList: Exercise[] }) {
             </div>
         );
     }
-
+    
     return (
-        <ul className="space-y-2 m-4">
-            {exerciseList.map((exercise, index) => (
+        <ul className="m-4 space-y-2">
+            {exerciseList.map((exercise) => (
                 <ExerciseSelector
                     key={exercise.id}
                     exercise={exercise}
-                    selected={selectedExerciseIds.includes(exercise.id)}
-                    onToggle={toggleExercise}
+                    selected={selectedIds.includes(exercise.id)}
+                    onToggle={onToggle}
                 />
             ))}
         </ul>
