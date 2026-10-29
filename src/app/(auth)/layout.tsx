@@ -1,4 +1,10 @@
+import { Metadata } from 'next/dist/lib/metadata/types/metadata-interface';
 import React from 'react';
+
+export const metadata: Metadata = {
+  title: 'Sign-Up | GYM_ERP',
+  description: 'Register into GYM_ERP.',
+};
 
 export default function AuthLayout({
   children,

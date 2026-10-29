@@ -1,12 +1,28 @@
 import { getDb } from "@/db";
 import { user, students, professionals } from '@/db/schema'
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import AnalyticsChart from '@/components/admin-charts/example'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 async function getTotalStudents() {
     const [result] = await getDb().select({ count: count() }).from(students);
     return result.count;
+}
+
+async function getActiveStudentsDates() {
+    const result = await getDb()
+        .select({
+            date: sql<string>`DATE(${user.createdAt})`,
+            total: count(),
+        })
+        .from(students)
+        .innerJoin(user, eq(user.id, students.userId))
+        .where(eq(students.status, 'active'))
+        .groupBy(sql`DATE(${user.createdAt})`)
+        .orderBy(sql`DATE(${user.createdAt})`);
+    return result;
 }
 
 type StudentStatus = 'active' | 'suspended' | 'cancelled';
@@ -52,8 +68,17 @@ export async function AdminDashboard({ userId }: { userId: string }) {
     const suspendedStudents = await getStudentsByStatus('suspended');
     const cancelledStudents = await getStudentsByStatus('cancelled');
     const totalProfessionals = await getTotalProfessionals();
+    const histogramActiveStudents = await getActiveStudentsDates();
     return (
         <div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Active Students by Date</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <AnalyticsChart data={histogramActiveStudents} />
+                </CardContent>
+            </Card>
             <h1>Hello, User ID: {userData.name}</h1>
             <p>Total number of students: {totalStudents}</p>
             <p>Total number of active students: {activeStudents}</p>

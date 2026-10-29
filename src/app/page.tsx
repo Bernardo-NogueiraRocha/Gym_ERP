@@ -1,14 +1,11 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getDb } from "@/db";
-import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
-
 import { AdminDashboard } from "./(dashboard)/components/admin_dashboard";
 import { StudentDashboard } from "./(dashboard)/components/student_dashboard";
 import { ProfessionalDashboard } from "./(dashboard)/components/professional_dashboard";
+import {getUserData} from "@/lib/queries/user"
 
 export const metadata: Metadata = {
   title: "Dashboard | GYM_ERP",
@@ -16,25 +13,26 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ 
-    headers: await headers() 
-  });
-
-  if (!session) {
+  let session;
+  
+  try {
+    session = await auth.api.getSession({ 
+      headers: await headers() 
+    });
+  } catch (error) {
+    console.error("Failed to fetch session:", error);
     redirect('/sign-in');
   }
 
-  const [userData] = await getDb()
-    .select({ role: user.role })
-    .from(user)
-    .where(eq(user.id, session.user.id))
-    .limit(1);
-
-  if (!userData) {
+  if (!session || !session.user) {
     redirect('/sign-in');
   }
 
-  // Render dedicated component based on role
+  const userData = await getUserData(session.user.id, {role: true, id: true});
+
+  if (!userData){
+    redirect('/sign-in');
+  }
   switch (userData.role) {
     case 'admin':
       return <AdminDashboard userId={session.user.id} />;
