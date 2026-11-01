@@ -64,3 +64,7 @@ To finish:
 ## [0.1.9] - 2026-10-08
 - Initial Register workout form with exercise selection
 - Database schema definition for workout session, in which the students will record weights, repetitions and if they performed other exercises, such as a cardio session.
+
+## [0.1.10] - 2026-11-1
+- Account Page, with membership information, payments and their status
+- Membership creation automatically generates payments and due dates

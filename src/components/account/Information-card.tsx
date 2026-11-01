@@ -25,7 +25,7 @@ export function AccountInfo({ userData }: AccountProps) {
                     className="rounded-full object-cover border border-slate-700"
                 />
             ) : (
-                <div className="w-[60px] h-[60px] rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-2xl">
+                <div className="w-15 h-15 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-2xl">
                     {userData.name?.[0]?.toUpperCase() ?? "U"}
                 </div>
             )}
@@ -43,7 +43,7 @@ export function AccountInfo({ userData }: AccountProps) {
         {/* Actions */}
         <div className="pt-4 border-t border-slate-800 flex justify-center">
             <Link href='/sign-out'>
-                <Button variant="destructive" size="default" className='w-full sm:w-auto text-[20px]'>
+                <Button variant="destructive" size="default" className='w-full sm:w-auto text-[16px] mb-2'>
                     Sign-out
                 </Button>
             </Link>

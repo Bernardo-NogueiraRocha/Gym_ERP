@@ -8,7 +8,6 @@ export async function getMembershipPlanId(userId: string) {
         .from(students)
         .where(eq(students.userId, userId))
         .limit(1);
-    console.log(student)
     if (!student) {
         return null;
     }
@@ -18,7 +17,6 @@ export async function getMembershipPlanId(userId: string) {
         .from(memberships)
         .where(eq(memberships.studentId, student.id))
         .limit(1);
-    console.log('Membership:',membership)
     return membership?.planId ?? null;
 }
 
@@ -28,7 +26,6 @@ export async function getMembershipUser(userId: string) {
         .from(students)
         .where(eq(students.userId, userId))
         .limit(1);
-    console.log(student)
     if (!student) {
         return null;
     }
@@ -38,6 +35,5 @@ export async function getMembershipUser(userId: string) {
         .from(memberships)
         .where(eq(memberships.studentId, student.id))
         .limit(1);
-    console.log('Membership:',membership)
     return membership;
 }

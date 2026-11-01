@@ -17,9 +17,9 @@
 - [X] Sign-up flow & Server Actions
 - [X] Sign-in flow & session handling
 - [X] Sign-out flow & cookies clearing
-- [ ] Forgot Password workflow
-- [ ] Delete Account (with cascade deletion of student profile & history)
-- [ ] Account page (membership details, status, billing history)
+- [X] Forgot Password workflow
+- [~] Delete Account (with cascade deletion of student profile & history)
+- [~] Account page (membership details, status, billing history)
 - [ ] Onboarding flow (routing user to student, professional, or admin dashboards)
 
 ## Memberships & Plans
