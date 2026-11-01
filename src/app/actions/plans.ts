@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from "@/db";
-import { students, memberships, billingEnum, plans } from "@/db/schema";
+import { students, memberships, billingEnum, plans, payments } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -34,6 +34,44 @@ function addFrequencyToDate(startDateStr: string, frequency: Frequency): string 
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function addMonthsToDate(startDateStr: string, months: number) {
+  const [year, month, day] = startDateStr.split('-').map(Number);
+  const result = new Date(year, month - 1, day);
+  const targetMonthIndex = (result.getMonth() + months) % 12;
+  result.setMonth(result.getMonth() + months);
+
+  if (result.getMonth() !== targetMonthIndex) {
+    result.setDate(0);
+  }
+
+  const yyyy = result.getFullYear();
+  const mm = String(result.getMonth() + 1).padStart(2, '0');
+  const dd = String(result.getDate()).padStart(2, '0');
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+type NewPayment = typeof payments.$inferInsert
+async function generatePayments(startDate: string, frequency: Frequency, basePrice: number|string, membershipId: string) {
+  const db = getDb();
+  const monthsToAdd = FREQUENCY_MONTHS[frequency];
+
+  const paymentValues: NewPayment[] = [];
+
+  for (let index = 0; index < monthsToAdd; index++) {
+    paymentValues.push({
+      amount: String(basePrice),
+      status: 'pending', 
+      dueDate: addMonthsToDate(startDate, index),
+      membershipId: membershipId,
+    });
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.insert(payments).values(paymentValues);
+  });
+}
+
 export async function subscribeToPlanAction({
   planId,
   userId,
@@ -42,13 +80,14 @@ export async function subscribeToPlanAction({
   userId: string;
 }) {
   try {
-    const [curr_plan] = await getDb().select().from(plans).where(eq(plans.id, planId));
+    const db = getDb();
+    const [curr_plan] = await db.select().from(plans).where(eq(plans.id, planId));
     if (!curr_plan) {
       return { success: false, error: 'Plan not found.' };
     }
 
     console.log(userId)
-    const [curr_student] = await getDb()
+    const [curr_student] = await db
       .select()
       .from(students)
       .where(eq(students.userId, userId))
@@ -66,16 +105,18 @@ export async function subscribeToPlanAction({
 
     const endDate = addFrequencyToDate(startDate, curr_plan.billingCycle);
 
-    await getDb().insert(memberships).values({
+    const [membership]= await db.insert(memberships).values({
       studentId: curr_student.id,
       planId: planId,
       startDate: startDate,
       endDate: endDate,
       appliedDiscount: '0.00',
       status: 'pending',
-    });
+    }).returning();
 
-    revalidatePath('/dashboard');
+    await generatePayments(startDate, curr_plan.billingCycle, curr_plan.basePrice, membership.id);
+
+    revalidatePath('/');
 
     return { success: true };
   } catch (error: any) {

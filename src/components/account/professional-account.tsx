@@ -1,13 +1,10 @@
-import { UserData } from "@/lib/types";
+import { AccountProps } from "@/lib/types";
+import { AccountInfo } from "./Information-card";
 
-type ProfessionalAccountProps = {
-  userData: UserData | null;
-};
-
-export function ProfessionalAccount({userData}: ProfessionalAccountProps) {
-    return(
-      <div>
-        
-      </div>
-    )
+export function ProfessionalAccount({ userData }: AccountProps) {
+  return (
+    <div className="w-full">
+      <AccountInfo userData={userData} />
+    </div>
+  );
 }

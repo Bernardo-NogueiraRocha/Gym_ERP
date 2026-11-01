@@ -167,10 +167,10 @@ async function main() {
         const planRows = await db
             .insert(schema.plans)
             .values([
-                { name: 'Plano Mensal', billingCycle: 'mensal', basePrice: '120.00' },
-                { name: 'Plano Trimestral', billingCycle: 'quarterly', basePrice: '300.00' },
-                { name: 'Plano Semestral', billingCycle: 'semiannual', basePrice: '540.00' },
-                { name: 'Plano Anual', billingCycle: 'annual', basePrice: '960.00' },
+                { name: 'Plano Mensal', billingCycle: 'mensal', basePrice: '130.00' },
+                { name: 'Plano Trimestral', billingCycle: 'quarterly', basePrice: '120.00' },
+                { name: 'Plano Semestral', billingCycle: 'semiannual', basePrice: '110.00' },
+                { name: 'Plano Anual', billingCycle: 'annual', basePrice: '100.00' },
             ])
             .returning();
 

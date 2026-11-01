@@ -7,3 +7,7 @@ import type { getUserData } from "@/lib/queries/user";
 export type UserData = NonNullable<
   Awaited<ReturnType<typeof getUserData>>
 >;
+
+export type AccountProps = {
+    userData: UserData | null;
+};
