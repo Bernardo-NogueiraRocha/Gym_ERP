@@ -39,9 +39,9 @@
 
 ## Professional & Student Workflow (Advanced / Future)
 - [ ] Student intake form (goals, experience level, past/current injuries)
-- [ ] Workout request system for students to submit preferences to professionals
-- [ ] Professional dashboard to view student requests, preferences, and injury notes
-- [ ] Professional workout builder interface (assigning/updating templates)
+- [X] Workout request system for students to submit preferences to professionals
+- [~] Professional dashboard to view student requests, preferences, and injury notes
+- [~] Professional workout builder interface (assigning/updating templates)
 - [ ] Progress analytics & tracking (visualizing weight/volume increases over time via charts)
 - [ ] Attendance calendar view (highlighting active workout session days in blue)
 

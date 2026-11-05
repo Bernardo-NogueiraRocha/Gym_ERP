@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     redirect('/sign-in');
   }
 
-  const userData = await getUserData(session.user.id, {role: true, id: true});
+  const userData = await getUserData(session.user.id);
 
   if (!userData){
     redirect('/sign-in');

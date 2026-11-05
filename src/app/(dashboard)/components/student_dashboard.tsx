@@ -29,7 +29,12 @@ export async function StudentDashboard({ userId }: { userId: string }) {
             <div className="mx-auto max-w-lg rounded-xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
                 <div className="mx-auto mb-3 text-3xl">🧘‍♂️</div>
                 <h2 className="text-xl font-bold text-zinc-100">No active workout scheduled</h2>
-                <p className="mt-1 text-sm text-zinc-400">Enjoy your rest day!</p>
+                <p className="mt-1 text-sm text-zinc-400">Would you like to request a workout?</p>
+                <Link href='/request-workout'>
+                    <Button className="mt-2 bg-blue-500">
+                        Request Workout
+                    </Button>
+                </Link>
             </div>
         );
     }

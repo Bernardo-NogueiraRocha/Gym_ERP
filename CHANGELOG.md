@@ -68,3 +68,9 @@ To finish:
 ## [0.1.10] - 2026-11-1
 - Account Page, with membership information, payments and their status
 - Membership creation automatically generates payments and due dates
+
+## [0.1.11] - 2026-11-4
+- Request workout for students
+  - Server action
+  - Schema
+  - Form
