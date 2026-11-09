@@ -19,7 +19,7 @@ export function PlanCards(
     }
 
     return (
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-4 m-10 gap-2">
             {plansArray.map((plan) => (
                 <PlanCard
                     key={plan.id}

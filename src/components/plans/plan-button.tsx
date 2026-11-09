@@ -14,7 +14,7 @@ export function PlanButton({
     if (isCurrentPlan) {
         return (
             <Button
-                className="mt-4 w-full"
+                className="mt-4 w-3/4"
                 disabled
             >
                 Current Plan
@@ -23,7 +23,7 @@ export function PlanButton({
     }
 
     return (
-        <Button className="mt-4 w-full">
+        <Button className="mt-4 w-3/4 mb-5">
             <Link href={`/plans/${planId}/checkout`}>
                 Select Plan
             </Link>

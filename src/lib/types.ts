@@ -8,6 +8,12 @@ export type UserData = NonNullable<
   Awaited<ReturnType<typeof getUserData>>
 >;
 
+import type { getStudentList } from "@/lib/queries/students";
+
+export type StudentList = NonNullable<
+  Awaited<ReturnType<typeof getStudentList>>
+>;
+
 export type AccountProps = {
     userData: UserData | null;
 };

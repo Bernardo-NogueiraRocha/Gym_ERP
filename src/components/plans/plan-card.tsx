@@ -10,11 +10,11 @@ export function PlanCard({
     const isCurrentPlan = plan.id === membershipPlanId;
 
     return (
-        <li>
-            <span>
+        <li className="text-center border-2 border-r-4 border-white">
+            <span className="text-xl font-semibold mt-5">
                 {plan.name} <br />
-                ${plan.basePrice} <br />
             </span>
+            <span>${plan.basePrice} <br /></span>
 
             <PlanButton
                 planId={plan.id}

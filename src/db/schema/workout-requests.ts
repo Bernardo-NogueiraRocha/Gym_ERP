@@ -16,6 +16,6 @@ export const workoutRequests = pgTable('workout_requests', {
   
   hasInjuries: boolean('has_injuries').default(false).notNull(),
   injuryDetails: text('injury_details'), // Nullable, filled only if hasInjuries is true
-  
+  solved: boolean('solved').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

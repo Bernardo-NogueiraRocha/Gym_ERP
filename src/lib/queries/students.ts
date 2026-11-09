@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { workouts, workoutItems, exercises, students } from "@/db/schema";
+import { workouts, workoutItems, exercises, students, user } from "@/db/schema";
 import { and, gte, lte, eq, or, isNull, asc } from "drizzle-orm";
 
 export async function getStudentData(userId: string) {
@@ -10,6 +10,17 @@ export async function getStudentData(userId: string) {
         .limit(1);
 
     return userData ?? null;
+}
+
+export async function getStudentList() {
+    const usersData = await getDb()
+        .select({
+            name: user.name,
+            student_id: students.id
+        })
+        .from(students)
+        .innerJoin(user, eq(students.userId,user.id))
+    return usersData ?? null;
 }
 
 export async function getCurrentWorkoutsWithItems(studentId: string) {

@@ -5,6 +5,10 @@ import { WorkoutRegisterForm } from "@/components/register-workout/workout-regis
 import { getSession } from "@/lib/auth-server";
 import { AccessDenied } from "@/components/access-denied";
 import type { Metadata } from 'next';
+import { WorkoutRequestList } from "@/components/register-workout/workout-request-list";
+import { getWorkoutRequests } from "@/lib/queries/workout-requests";
+import { StudentSelector } from "@/components/register-workout/student-selector";
+import { getStudentList } from "@/lib/queries/students";
 
 export const metadata: Metadata = {
   title: 'Register Workout | GYM_ERP',
@@ -59,8 +63,15 @@ export default async function RegisterWorkoutPage() {
     }
     const exercise_list = await GetExerciseList();
 
+    const workoutRequest_list = await getWorkoutRequests();
+
+    const usersData = await getStudentList();
     return (
         <div>
+            <div className="xl:flex md:m-auto">
+                <WorkoutRequestList workoutRequests={workoutRequest_list}/>
+                <StudentSelector usersData={usersData}/>
+            </div>
             <WorkoutRegisterForm exercises={exercise_list}/>
         </div>
     );
