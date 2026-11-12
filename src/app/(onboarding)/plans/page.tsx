@@ -6,6 +6,7 @@ import { PlanCards } from "@/components/plans/plan-cards";
 
 type Plan = Awaited<ReturnType<typeof getPlans>>[number];
 
+export const dynamic = "force-dynamic";
 
 export default async function PlansPage() {
     const plans = await getPlans();
