@@ -1,204 +1,121 @@
-# Gym_ERP
-## 1. Product Overview
-Gym_ERP is a web-based management system designed to centralize the operational, financial, and student-management activities of fitness centers.
+# Gym ERP
 
-The system is organized around three main user roles: students, professionals, and administrators. Each role has access to the information and operations relevant to its responsibilities.
+Gym ERP is a web-based management system for fitness centers. It brings together member, professional, workout, membership, and payment workflows, with role-specific dashboards for administrators, professionals, and students.
 
+## Features
 
-### Getting started
-To start running, there are a few commands necessary:
+### Authentication and Access Control
+- User registration and sign-in.
+- Session management and password recovery.
+- Role-based access control.
 
-1) 
-```bash 
-docker compose up -d
+### Gym Management
+- Student and professional management.
+- Membership plans.
+- Class and schedule management.
+
+### Workout Management
+- Student workout requests.
+- Professional workout registration and editing.
+
+### Financial Management
+- Membership checkout.
+- Payment status tracking.
+- Financial records and reporting.
+
+> The application is under active development. Some workflows and dashboard capabilities are incomplete; see [TODO.md](TODO.md).
+
+## Architecture Overview
+
+Gym ERP uses a Next.js application with TypeScript
+for its frontend and server-side functionality.
+
+PostgreSQL provides persistent storage, with Drizzle ORM
+handling database queries and schema management.
+
+Better Auth manages authentication and session handling,
+while application-level authorization controls access
+according to user roles.
+
+## Requirements
+
+- Node.js and npm (or Bun).
+- Docker and Docker Compose for the local PostgreSQL database, or for running the full Compose stack.
+
+## Getting started
+
+### Run the app locally
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Create `.env.local` in the project root. Configure `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, and `RESEND_API_KEY` as needed. Keep real credentials private; do not commit `.env.local`.
+
+3. Start PostgreSQL:
+
+   ```bash
+   docker compose up -d postgres
+   ```
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000).
+
+The project also supports Bun: use `bun install` and `bun run dev` instead of the npm commands.
+
+### Run the full Compose stack
+
+After configuring `.env.local` (required by the Compose app service), run:
+
+```bash
+docker compose up -d --build
 ```
-To have the database ready for the application.
 
-2) npm (or bun) install
-3) npm (or bun) run dev
+This starts PostgreSQL and the containerized application on port 3000. To stop the services, run `docker compose down`. The database data is stored in the `postgres_data` Docker volume.
 
-## 2. Problem / Objective
-### Problem
+## Useful commands
 
-Fitness centers need to manage different aspects of their operations, including student records, training plans, classes, memberships, and financial information.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server |
+| `npm run build` | Build the application for production |
+| `npm run start` | Start the production server |
+| `npm run lint` | Run ESLint |
+| `npm run db:push` | Push the Drizzle schema to the configured database |
+| `npm run db:generate` | Generate Drizzle migration files |
+| `npm run db:studio` | Open Drizzle Studio |
+| `npm run db:seed` | Seed the database with development data |
 
-When these activities are not properly organized, it becomes harder to maintain consistent records, manage daily operations, and access information needed for decision-making.
+## Roles
 
-### Objective
+| Role | Current focus |
+| --- | --- |
+| Administrator | Student and professional metrics, with administrative workflows in progress |
+| Professional | View assigned students and register workouts |
+| Student | View current workouts, request workouts, and access account and membership information |
 
-Gym_ERP aims to provide a centralized web-based platform for managing fitness center operations.
+## Technology
 
-The system is designed to support student management, professional workflows, memberships, financial operations, and role-specific dashboards, allowing each user to access the information and functionality relevant to their responsibilities.
+- Next.js and TypeScript
+- React and Tailwind CSS, with shadcn/ui components
+- PostgreSQL and Drizzle ORM
+- Better Auth
+- Zod for validation
+- Docker Compose for local development
 
-## 3. User Roles
-| Resource   | Admin | Professional |      Student |
-| --------- | ----: | -----------: | -----------: |
-| Students  |  CRUD |        Read* |          Own |
-| Workouts  |  CRUD |        CRUD* |     Read own |
-| Exercises |  CRUD |         CRUD |         Read |
-| Classes   |  CRUD | Read/manage* | Read/enroll* |
-| Plans     |  CRUD |         Read |     Read own |
-| Payments  |  CRUD |            - |     Read own |
-| Reports   |  CRUD |      Limited |          Own |
-| Users     |  CRUD |            - |          Own |
+## Project documentation
 
+- [TODO.md](TODO.md) — current backlog and project priorities
+- [CHANGELOG.md](CHANGELOG.md) — notable project changes
+- [`docs/`](docs/) — product, database, and system design notes
 
-## 4. User Stories
+## License
 
-### Students
-1) As a student, I want to access my training plan so that I know which exercices I should perform.
-2) As a student, I want to view my class schedule so that I can plan my training sessions.
-3) As a student, I want to view my enrollment and payment status to that I can keep track of my membership.
-4) As a student, I want to participate in other fitness classes, such as cycling and pilates. 
-5) As a student, I want to be able to manage my plan and be notified of near future payments.
-
-### Professionals
-1) As a professional, I want to access the student assigned to me so that I can manage their training plans.
-2) As a professional, I want to create and update workouts so that students can have an appropriate training plan.
-3) As a professional, I want to view relevant student history so that I can make better decisions when adjusting workouts.
-4) As a professional, I want to 
-
-### Administrators
-1) As a administrator, I want to manage students and professionals so that I can maintain the gym's records.
-2) As a administrator, I want to manage plans and memberships so that I can control the commercial side of the gym.
-3) As a administrator, I want to view financial information so that I can monitor the gym's operation.  
-4) As a administrator, I want to access reports so that I can identify relevant trends in the business.
-
-## 5. Functional Requirements
-### Student Management
-Requirements:
-* Student registration 
-  * Photo
-  * Documents
-  * Address
-  * Enrollment history
-  * Status: active, suspended, cancelled
-  * Observations
-  * Payment information
-
-## 6. Non-Functional Requirements  
-1) Authentication:
-2) Authorization:
-3) Data protection:
-4) Auditability:
-5) Database backups:  
-6) API security:  
-7) Availability:  
-8) Data consistency: 
-9) 
-
-## 7. Current Status
-### Implemented
-* Authentication: Sign-up and sign-in pages with Better Auth. Authentication is integrated with the application database.
-* Database: PostgreSQL running in a Docker container for local development.
-* Persistence: Database schema defined and populated through a seeding script.
-* ORM: Drizzle ORM integrated with the PostgreSQL database.
-### In Progress
-* Role-based authorization.
-* User onboarding and role assignment.
-* Role-specific dashboards.
-* Student and professional workflows.
-### Planned
-* Financial management.
-* Reports and data visualizations.
-* AWS deployment.
-* Background jobs and notifications.
-
-## 8. Architecture
-
-
-## 9. Tech Stack
-
-| **Asppect**          | **Technology**           | **Rationale**                                                                  |
-|----------------------|--------------------------|--------------------------------------------------------------------------------|
-| Full Stack Framework | Next.js + TypeScript     | Unified application for the different user roles.                              |
-| Styling              | Tailwind CSS + shadcn/ui | Build consistent interfaces and reusable UI components.                        |
-| Database             | PostgreSQL               | Relational data model for users, students, workouts and other domain entities. |
-| ORM                  | Drizzle                  | Type-safe database access and schema management.                               |
-| Authentication       | Better Auth              | Manage authentication and user sessions.                                       |
-| Local Environment    | Docker Compose           | Run PostgreSQL consistently in development.                                    |
-| Input validation    | Zod           | Define and validate schemas and inputs for complex types (CPF, phone, email)|
-
-### Planned Infrastructure
-
-AWS EC2 — application deployment.
-
-AWS RDS — managed PostgreSQL.
-
-AWS S3 — file storage.
-
-CloudFront — content delivery.
-
-Inngest — background jobs and scheduled tasks.
-
-## 10. Application Structure / Routes
-
-## 11. Database
-
-## 12. Security & LGPD
-
-## 13. Roadmap
-### MVP
-* Main workflow:
-1) Admin registers students and professionals
-2) Professionals creates workouts and associates to a specific student
-3) Student access their own workout and personal informations
-
-* Authentication and onboarding
-  * Sign-up
-  * Sign-in
-  * Sign-out
-  * Persistent sessions
-  * Password recovery
-  * Initial onboarding
-  * Role definition
-* Rules:
-  * Non-authenticated user does not access the system
-  * Authenticated users have a defined role
-  * User access only role defined features
-  * Registering cannot allow any person to become an ADMIN.
-**Current Status**:
-
-* Users and authorization
-* Student management
-* Professional management
-  * CRUD
-  * Student link
-  * Student consulting
-  * Rules:
-    * A professional can view and manage workouts only for students assigned to them.
-
-* Exercises
-  * Create
-  * Edit/Update
-  * List
-  * Visualize
-  * Delete
-* Workouts
-  * Create
-  * Edit
-  * Link to student
-  * Add exercises
-  * Define repetitions and sets
-  * Student visualization
-* Initial Dashboards:
-  * Admin: Total of students, professionals, active students, shortcuts for registering.
-  * Professional: Associated students, recent workouts, shortcuts for creating workouts, students without workouts.
-  * Student: My workouts, current workout, personal information.
-
-* **Out of scope**:
-  * Financials;
-  * Plans, promotions, renewals, freezing memberships.
-  * Contracts, document generation;
-  * Notifications and background jobs;
-  * Advanced reports and visualizations;
-  * Mobile app;
-  * Public API for external integration;
-  * AWS deploy;
-
-### Planned production architecture
-* Cloud based deployment in Cloud:AWS
-  * AWS RDS for
-  * AWS S3 for storage
-  * CloudFront
-  * EC2 for deployment of the website.
+No license has been specified yet.

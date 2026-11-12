@@ -1,76 +1,92 @@
 # Changelog
 
-All notable changes to the Gym_ERP project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Notable changes to Gym ERP are documented here. This file follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.11] - 2026-11-04
+
+### Added
+
+- Student workout request flow, including its schema, server action, and form.
+
+## [0.1.10] - 2026-11-01
+
+### Added
+
+- Account page with membership information and payment statuses.
+- Automatic payment records and due dates when creating a membership.
+
+## [0.1.9] - 2026-10-08
+
+### Added
+
+- Workout registration form with exercise selection.
+- Initial workout-session schema for recording performed exercises, repetitions, and weights.
+
+## [0.1.8] - 2026-10-08
+
+### Added
+
+- Initial account and workout-registration page definitions.
+- Student dashboard with current workouts and workout details.
+
+## [0.1.7] - 2026-09-30
+
+### Added
+
+- Plans page and membership creation server action.
+- Proxy configuration for route access and session handling.
+
+### Changed
+
+- Refactored naming and addressed lint warnings.
+
+## [0.1.6] - 2026-09-18
+
+### Added
+
+- Sign-out flow that revokes the user session and redirects to sign-in.
+- Session-management configuration.
+
+## [0.1.5] - 2026-09-15
+
+### Added
+
+- Database seeding script with user and account records.
+
+## [0.1.4] - 2026-09-14
+
+### Added
+
+- Authentication server actions and initial sign-up and sign-in pages.
+- Forgot-password and reset-password pages.
+- Proxy-based cookie management and access restrictions for dashboard routes.
+- Roboto font configuration.
+
+## [0.1.3] - 2026-09-11
+
+### Added
+
+- shadcn/ui setup.
+- Better Auth configuration and catch-all authentication API route.
+
+## [0.1.2] - 2026-09-10
+
+### Added
+
+- Docker Compose configuration for PostgreSQL.
+- Database connection test script and Drizzle configuration.
+
+## [0.1.1] - 2026-09-09
+
+### Added
+
+- Database schema definitions for the remaining entities in the project model.
 
 ## [0.1.0] - 2026-09-09
 
 ### Added
-- Initialized PostgreSQL database configuration using Drizzle ORM.
-- Added base schema definition for `students`, `plans`, and `student_plan` junction tables.
 
-## [0.1.1] - 2026-09-09
-- Base schemas for all remaining classes in database model in docs folder.
-
-## [0.1.2] - 2026-09-10
-- Docker compose for postgres image: Simple setup with `docker compose up -d` for new installations.
-- Test connection script in src/db/test-conn.ts
-- Drizzle configuration files (image of Drizzle Studio with the table schemas added in media folder)
-
-## [0.1.3] - 2026-09-11
-- Shadcn installation
-- Auth configuration with Better Auth: Catch-all routes with src/app/api/auth/[...all], so that API calls for authentication can be handled dynamically and managed by src/app/lib/auth.ts.
-
-## [0.1.4] - 2026-09-14
-- Server actions for authentication, creates Better Auth user and student in db.
-- proxy for cookie management and route limits for unlogged users (dashboard)
-- Initial Sign-up and sign-in page
-- Configurations for forgot-password and reset password pages
-- Font customization from google (Roboto font)
-
-## [0.1.5] - 2026-09-15
-- Seeding script with user/account creation
-
-## [0.1.6] - 2026-09-18
-- Sign-out page:
-  - Redirect to sign-in
-  - Revoke user session
-- Session management learning
-
-## [0.1.7] - 2026-09-24 (Unfinished)
-- Plans Page
-- Checkout plan page
-- Server action for membership creation
-
-To finish:
-[ ] Cookie verification in each page
-[ ] Proxy configuration
-[ ] Checkout 
-
-## [0.1.7] - 2026-09-30
-- Proxy Configuration
-- Plans Page
-- Server action for membership creation
-- Code refactoring (naming conventions, warning corrections, linting)
-
-## [0.1.8] - 2026-10-08
-- Initial account and register workout page definition
-- Student dashboard with list of current workouts, clickable for details (exercises, sets, repetitions)
-
-## [0.1.9] - 2026-10-08
-- Initial Register workout form with exercise selection
-- Database schema definition for workout session, in which the students will record weights, repetitions and if they performed other exercises, such as a cardio session.
-
-## [0.1.10] - 2026-11-1
-- Account Page, with membership information, payments and their status
-- Membership creation automatically generates payments and due dates
-
-## [0.1.11] - 2026-11-4
-- Request workout for students
-  - Server action
-  - Schema
-  - Form
+- Initial PostgreSQL and Drizzle ORM configuration.
+- Base schema for students, plans, and the student-plan relationship.
