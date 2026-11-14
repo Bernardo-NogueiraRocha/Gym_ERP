@@ -1,15 +1,13 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { getPlans } from "@/lib/queries/plans";
+import { getPlansWithFeatures } from "@/lib/queries/plans";
 import { getMembershipPlanId } from "@/lib/queries/memberships";
 import { PlanCards } from "@/components/plans/plan-cards";
-
-type Plan = Awaited<ReturnType<typeof getPlans>>[number];
 
 export const dynamic = "force-dynamic";
 
 export default async function PlansPage() {
-    const plans = await getPlans();
+    const { plans, features, includedFeatureIdsByPlan } = await getPlansWithFeatures();
 
     const session = await auth.api.getSession({ headers: await headers() });
 
@@ -24,6 +22,8 @@ export default async function PlansPage() {
             <PlanCards
                 plansArray={plans}
                 membershipPlanId={membershipPlanId}
+                features={features}
+                includedFeatureIdsByPlan={includedFeatureIdsByPlan}
             />
         </div>
     );

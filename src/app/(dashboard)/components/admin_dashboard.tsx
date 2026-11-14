@@ -80,6 +80,11 @@ export async function AdminDashboard({ userId }: { userId: string }) {
                 </CardContent>
             </Card>
             <h1>Hello, User ID: {userData.name}</h1>
+            <div className="my-4">
+                <Link href="/register-features">
+                    <Button variant="outline">Manage Plan Features</Button>
+                </Link>
+            </div>
             <p>Total number of students: {totalStudents}</p>
             <p>Total number of active students: {activeStudents}</p>
             <p>Total number of suspended students: {suspendedStudents}</p>

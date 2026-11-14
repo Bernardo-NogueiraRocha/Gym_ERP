@@ -33,6 +33,8 @@ async function main() {
         await db.delete(schema.plans);
         await db.delete(schema.professionals);
         await db.delete(schema.students);
+        await db.delete(schema.features);
+        await db.delete(schema.planFeatures);
 
         // Clean Better Auth core tables
         await db.delete(schema.account);
@@ -178,6 +180,21 @@ async function main() {
             acc[p.billingCycle] = p;
             return acc;
         }, {});
+
+        const featureRows = await db.insert(schema.features).values([
+            { name: 'Acesso livre à musculação', description: 'Acesso à área de musculação durante o horário de funcionamento.' },
+            { name: 'Aulas em grupo', description: 'Participação nas aulas coletivas da academia.' },
+            { name: 'Avaliação física', description: 'Avaliação física periódica com um profissional.' },
+            { name: 'Personal trainer', description: 'Sessões individuais com um personal trainer.' },
+        ]).returning();
+
+        const featureByName = Object.fromEntries(featureRows.map((feature) => [feature.name, feature]));
+        await db.insert(schema.planFeatures).values([
+            ...planRows.map((plan) => ({ planId: plan.id, featureId: featureByName['Acesso livre à musculação'].id, included: true })),
+            ...planRows.map((plan) => ({ planId: plan.id, featureId: featureByName['Aulas em grupo'].id, included: plan.billingCycle !== 'mensal' })),
+            ...planRows.map((plan) => ({ planId: plan.id, featureId: featureByName['Avaliação física'].id, included: plan.billingCycle === 'semiannual' || plan.billingCycle === 'annual' })),
+            { planId: planByCycle.annual.id, featureId: featureByName['Personal trainer'].id, included: true },
+        ]);
 
         const classRows = await db
             .insert(schema.classes)
