@@ -8,15 +8,27 @@ import { SelectedExercises } from "./selected-exercises";
 import type { WorkoutItemDraft } from "./workout-item-draft";
 import { DatePicker } from "./date-picker";
 import { Button } from "../ui/button";
+import { StudentSelector } from "./student-selector";
+import { WorkoutRequestList } from "./workout-request-list";
+import type { StudentList } from "@/lib/types";
+import type { getWorkoutRequests } from "@/lib/queries/workout-requests";
+import { createWorkoutAction } from "@/app/actions/workout-register/actions";
+import { format } from "date-fns";
 
 type Exercise = InferSelectModel<typeof exercises>;
 
 interface WorkoutRegisterFormProps {
     exercises: Exercise[];
+    students: StudentList;
+    workoutRequests: Awaited<ReturnType<typeof getWorkoutRequests>>;
 }
 
-export function WorkoutRegisterForm({ exercises }: WorkoutRegisterFormProps) {
+export function WorkoutRegisterForm({ exercises, students, workoutRequests }: WorkoutRegisterFormProps) {
     const [items, setItems] = useState<WorkoutItemDraft[]>([]);
+    const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+    const [title, setTitle] = useState("Custom workout");
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const selectedIds = items.map((item) => item.exerciseId);
 
     const [startDate, setStartDate] = useState<Date | undefined>(() => new Date());
@@ -62,16 +74,40 @@ export function WorkoutRegisterForm({ exercises }: WorkoutRegisterFormProps) {
         });
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(null);
+        if (!selectedStudentId) {
+            setError("Select a student from the list or a workout request.");
+            return;
+        }
+        if (!startDate || (endDate && endDate < startDate)) {
+            setError("Choose a valid start date and an end date after it.");
+            return;
+        }
+        if (items.length === 0) {
+            setError("Add at least one exercise to the workout.");
+            return;
+        }
 
-        const workoutData = {
-            startDate,
-            endDate,
-            items,
-        };
-
-        console.log(workoutData);
+        setIsSubmitting(true);
+        try {
+            await createWorkoutAction({
+                studentId: selectedStudentId,
+                title: title.trim(),
+                startDate: format(startDate, "yyyy-MM-dd"),
+                endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
+                items,
+            });
+            setError(null);
+            setItems([]);
+            setSelectedStudentId(null);
+            setTitle("Custom workout");
+        } catch (submitError) {
+            setError(submitError instanceof Error ? submitError.message : "Failed to register workout.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -79,10 +115,37 @@ export function WorkoutRegisterForm({ exercises }: WorkoutRegisterFormProps) {
             <h2 className="text-center text-2xl font-semibold text-slate-100">
                 Register Workout
             </h2>
+            <div className="mx-auto mt-4 grid max-w-6xl grid-cols-1 gap-6 xl:grid-cols-2">
+                <WorkoutRequestList
+                    workoutRequests={workoutRequests}
+                    selectedStudentId={selectedStudentId}
+                    onSelectStudent={setSelectedStudentId}
+                />
+                <StudentSelector
+                    usersData={students}
+                    selectedUserId={selectedStudentId}
+                    onSelect={setSelectedStudentId}
+                />
+            </div>
             <form
                 onSubmit={handleSubmit}
-                className="mx-auto mt-2 space-y-4 rounded-2xl border-2 p-6"
+                className="mx-auto mt-4 max-w-6xl space-y-4 rounded-2xl border-2 p-6"
             >
+                <p className="text-slate-200" aria-live="polite">
+                    {selectedStudentId
+                        ? `Selected student: ${students.find((student) => student.student_id === selectedStudentId)?.name ?? "Student"}`
+                        : "Select a student from the list or choose a workout request above."}
+                </p>
+                <label className="block space-y-1 text-slate-100">
+                    <span>Workout title</span>
+                    <input
+                        required
+                        maxLength={50}
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                        className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2"
+                    />
+                </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 grid-rows2">
 
                     <section className="space-y-2 max-w-xl">
@@ -119,8 +182,11 @@ export function WorkoutRegisterForm({ exercises }: WorkoutRegisterFormProps) {
                 </div>
 
                 <div className="flex justify-center pt-2">
-                    <Button type="submit" className="text-lg w-50 bg-blue-600">Submit Workout</Button>
+                    <Button type="submit" disabled={isSubmitting} className="text-lg w-50 bg-blue-600">
+                        {isSubmitting ? "Saving…" : "Submit Workout"}
+                    </Button>
                 </div>
+                {error && <p role="alert" className="text-center text-red-400">{error}</p>}
             </form>
         </div>
     );
