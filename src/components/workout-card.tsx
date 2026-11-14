@@ -9,7 +9,7 @@ type WorkoutItem = {
     reps: number | null;
     sets: number | null;
     restSeconds: number | null;
-    targetMuscles: string | null;
+    muscles: { name: string; stimulusStrength: number }[];
 };
 
 type Workout = {
@@ -87,9 +87,9 @@ export function WorkoutCard({ workout }: { workout: Workout }) {
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <h4 className="font-semibold text-zinc-100">{item.exercise_name}</h4>
-                                        {item.targetMuscles && (
+                                        {item.muscles.length > 0 && (
                                             <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">
-                                                {item.targetMuscles}
+                                                {item.muscles.map((muscle) => `${muscle.name} (${muscle.stimulusStrength})`).join(", ")}
                                             </span>
                                         )}
                                     </div>

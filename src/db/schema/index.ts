@@ -13,5 +13,6 @@ export * from './workout_items';
 export * from './exercises';
 export * from './expenseBills';
 export * from './professionals_students'
-export * from './workout-requests'
-export * from './plan_features'
+export * from './workout-requests';
+export * from './plan_features';
+export * from './muscles';

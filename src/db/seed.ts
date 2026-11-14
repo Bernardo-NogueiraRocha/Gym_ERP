@@ -35,6 +35,8 @@ async function main() {
         await db.delete(schema.students);
         await db.delete(schema.features);
         await db.delete(schema.planFeatures);
+        await db.delete(schema.muscles);
+        await db.delete(schema.exerciseMuscles);
 
         // Clean Better Auth core tables
         await db.delete(schema.account);
@@ -152,19 +154,86 @@ async function main() {
         );
 
         // 5. Seed Core Domain Data
-        const exerciseRows = await db
-            .insert(schema.exercises)
-            .values([
-                { name: 'Bench Press', targetMuscles: 'Chest, Triceps, Shoulders' },
-                { name: 'Back Squat', targetMuscles: 'Quadriceps, Glutes, Core' },
-                { name: 'Deadlift', targetMuscles: 'Hamstrings, Glutes, Lower Back' },
-                { name: 'Lat Pulldown', targetMuscles: 'Lats, Biceps, Upper Back' },
-                { name: 'Leg Press', targetMuscles: 'Quadriceps, Glutes, Hamstrings' },
-                { name: 'Shoulder Press', targetMuscles: 'Deltoids, Triceps' },
-                { name: 'Biceps Curl', targetMuscles: 'Biceps, Forearms' },
-                { name: 'Plank', targetMuscles: 'Core, Lower Back' },
-            ])
-            .returning();
+        const insertedMuscles = await db.insert(schema.muscles).values([
+            { name: 'Chest', slug: 'chest', bodyGroup: 'Upper Body' },
+            { name: 'Triceps', slug: 'triceps', bodyGroup: 'Upper Body' },
+            { name: 'Deltoids', slug: 'deltoids', bodyGroup: 'Upper Body' },
+            { name: 'Quadriceps', slug: 'quadriceps', bodyGroup: 'Lower Body' },
+            { name: 'Gluteal', slug: 'gluteal', bodyGroup: 'Lower Body' },
+            { name: 'Hamstring', slug: 'hamstring', bodyGroup: 'Lower Body' },
+            { name: 'Upper Back', slug: 'upper-back', bodyGroup: 'Upper Body' },
+            { name: 'Lower Back', slug: 'lower-back', bodyGroup: 'Core' },
+            { name: 'Biceps', slug: 'biceps', bodyGroup: 'Upper Body' },
+            { name: 'Forearm', slug: 'forearm', bodyGroup: 'Upper Body' },
+            { name: 'Abs', slug: 'abs', bodyGroup: 'Core' },
+        ]).returning();
+
+        // Create a lookup map for muscle slugs -> IDs
+        const muscleMap = Object.fromEntries(insertedMuscles.map(m => [m.slug, m.id]));
+
+        // 2. Seed Exercises (including original list + new additions)
+        const insertedExercises = await db.insert(schema.exercises).values([
+            { name: 'Bench Press' },
+            { name: 'Back Squat' },
+            { name: 'Deadlift' },
+            { name: 'Lat Pulldown' },
+            { name: 'Leg Press' },
+            { name: 'Shoulder Press' },
+            { name: 'Biceps Curl' },
+            { name: 'Plank' },
+            { name: 'Pull-Up' },
+            { name: 'Romanian Deadlift' },
+        ]).returning();
+
+        // Create a lookup map for exercise names -> IDs
+        const exerciseMap = Object.fromEntries(insertedExercises.map(e => [e.name, e.id]));
+
+        // 3. Seed Junction Table (Exercise-Muscles with stimulus strengths)
+        await db.insert(schema.exerciseMuscles).values([
+            // Bench Press
+            { exerciseId: exerciseMap['Bench Press'], muscleId: muscleMap['chest'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Bench Press'], muscleId: muscleMap['triceps'], stimulusStrength: 0.6 },
+            { exerciseId: exerciseMap['Bench Press'], muscleId: muscleMap['deltoids'], stimulusStrength: 0.7 },
+
+            // Back Squat
+            { exerciseId: exerciseMap['Back Squat'], muscleId: muscleMap['quadriceps'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Back Squat'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.8 },
+            { exerciseId: exerciseMap['Back Squat'], muscleId: muscleMap['abs'], stimulusStrength: 0.4 },
+
+            // Deadlift
+            { exerciseId: exerciseMap['Deadlift'], muscleId: muscleMap['hamstring'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Deadlift'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.9 },
+            { exerciseId: exerciseMap['Deadlift'], muscleId: muscleMap['lower-back'], stimulusStrength: 0.8 },
+
+            // Lat Pulldown
+            { exerciseId: exerciseMap['Lat Pulldown'], muscleId: muscleMap['upper-back'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Lat Pulldown'], muscleId: muscleMap['biceps'], stimulusStrength: 0.7 },
+
+            // Leg Press
+            { exerciseId: exerciseMap['Leg Press'], muscleId: muscleMap['quadriceps'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Leg Press'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.6 },
+
+            // Shoulder Press
+            { exerciseId: exerciseMap['Shoulder Press'], muscleId: muscleMap['deltoids'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Shoulder Press'], muscleId: muscleMap['triceps'], stimulusStrength: 0.6 },
+
+            // Biceps Curl
+            { exerciseId: exerciseMap['Biceps Curl'], muscleId: muscleMap['biceps'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Biceps Curl'], muscleId: muscleMap['forearm'], stimulusStrength: 0.4 },
+
+            // Plank
+            { exerciseId: exerciseMap['Plank'], muscleId: muscleMap['abs'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Plank'], muscleId: muscleMap['lower-back'], stimulusStrength: 0.5 },
+
+            // Pull-Up
+            { exerciseId: exerciseMap['Pull-Up'], muscleId: muscleMap['upper-back'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Pull-Up'], muscleId: muscleMap['biceps'], stimulusStrength: 0.8 },
+
+            // Romanian Deadlift
+            { exerciseId: exerciseMap['Romanian Deadlift'], muscleId: muscleMap['hamstring'], stimulusStrength: 1.0 },
+            { exerciseId: exerciseMap['Romanian Deadlift'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.7 },
+            { exerciseId: exerciseMap['Romanian Deadlift'], muscleId: muscleMap['lower-back'], stimulusStrength: 0.6 },
+        ]);
 
         const planRows = await db
             .insert(schema.plans)
@@ -211,8 +280,8 @@ async function main() {
             .insert(schema.professionals)
             .values([
                 { userId: 'usr_prof_01', cref: '012345678/G-SP', specialty: 'Musculação e hipertrofia', approved: true },
-                { userId: 'usr_prof_02', cref: '876543210/G-SP', specialty: 'CrossFit nível 2', approved: true},
-                { userId: 'usr_prof_03', cref: '456789123/G-SP', specialty: 'Pilates e mobilidade' , approved: true},
+                { userId: 'usr_prof_02', cref: '876543210/G-SP', specialty: 'CrossFit nível 2', approved: true },
+                { userId: 'usr_prof_03', cref: '456789123/G-SP', specialty: 'Pilates e mobilidade', approved: true },
             ])
             .returning();
 
@@ -260,34 +329,32 @@ async function main() {
                 { studentId: julia.id, prescribedByProfessionalId: professionalRows[2].id, title: 'Pilates Iniciante', startDate: isoFrom(0), endDate: isoFrom(90) },
             ])
             .returning();
-        
+
         await getDb()
             .insert(schema.professionalStudents)
             .values(
                 [
-                    {professionalId: professionalRows[0].id, studentId: thiago.id},
-                    {professionalId: professionalRows[1].id, studentId: anna.id},
-                    {professionalId: professionalRows[2].id, studentId: julia.id},
+                    { professionalId: professionalRows[0].id, studentId: thiago.id },
+                    { professionalId: professionalRows[1].id, studentId: anna.id },
+                    { professionalId: professionalRows[2].id, studentId: julia.id },
                 ]
             );
 
         const [thiagoA, thiagoB, annaW, juliaW] = workoutRows;
-        const [bench, squat, deadlift, pulldown, legPress, shoulderPress, bicepsCurl, plank] = exerciseRows;
-
         await db.insert(schema.workoutItems).values([
-            { workoutId: thiagoA.id, exerciseId: bench.id, position: 0, sets: 4, reps: 10, restSeconds: 60 },
-            { workoutId: thiagoA.id, exerciseId: pulldown.id, position: 1, sets: 3, reps: 12, restSeconds: 60 },
-            { workoutId: thiagoA.id, exerciseId: legPress.id, position: 2, sets: 4, reps: 10, restSeconds: 90 },
-            { workoutId: thiagoA.id, exerciseId: bicepsCurl.id, position: 3, sets: 3, reps: 12, restSeconds: 45 },
-            { workoutId: thiagoB.id, exerciseId: deadlift.id, position: 0, sets: 4, reps: 6, restSeconds: 120 },
-            { workoutId: thiagoB.id, exerciseId: squat.id, position: 1, sets: 4, reps: 8, restSeconds: 90 },
-            { workoutId: thiagoB.id, exerciseId: shoulderPress.id, position: 2, sets: 3, reps: 10, restSeconds: 60 },
-            { workoutId: thiagoB.id, exerciseId: plank.id, position: 3, sets: 3, reps: 60, restSeconds: 30 },
-            { workoutId: annaW.id, exerciseId: squat.id, position: 0, sets: 5, reps: 5, restSeconds: 120 },
-            { workoutId: annaW.id, exerciseId: deadlift.id, position: 1, sets: 3, reps: 5, restSeconds: 150 },
-            { workoutId: annaW.id, exerciseId: shoulderPress.id, position: 2, sets: 5, reps: 5, restSeconds: 90 },
-            { workoutId: juliaW.id, exerciseId: plank.id, position: 0, sets: 3, reps: 45, restSeconds: 30 },
-            { workoutId: juliaW.id, exerciseId: legPress.id, position: 1, sets: 3, reps: 15, restSeconds: 45 },
+            { workoutId: thiagoA.id, exerciseId: exerciseMap['Bench Press'], position: 0, sets: 4, reps: 10, restSeconds: 60 },
+            { workoutId: thiagoA.id, exerciseId: exerciseMap['Lat Pulldown'], position: 1, sets: 3, reps: 12, restSeconds: 60 },
+            { workoutId: thiagoA.id, exerciseId: exerciseMap['Leg Press'], position: 2, sets: 4, reps: 10, restSeconds: 90 },
+            { workoutId: thiagoA.id, exerciseId: exerciseMap['Biceps Curl'], position: 3, sets: 3, reps: 12, restSeconds: 45 },
+            { workoutId: thiagoB.id, exerciseId: exerciseMap['Deadlift'], position: 0, sets: 4, reps: 6, restSeconds: 120 },
+            { workoutId: thiagoB.id, exerciseId: exerciseMap['Back Squat'], position: 1, sets: 4, reps: 8, restSeconds: 90 },
+            { workoutId: thiagoB.id, exerciseId: exerciseMap['Shoulder Press'], position: 2, sets: 3, reps: 10, restSeconds: 60 },
+            { workoutId: thiagoB.id, exerciseId: exerciseMap['Plank'], position: 3, sets: 3, reps: 60, restSeconds: 30 },
+            { workoutId: annaW.id, exerciseId: exerciseMap['Back Squat'], position: 0, sets: 5, reps: 5, restSeconds: 120 },
+            { workoutId: annaW.id, exerciseId: exerciseMap['Deadlift'], position: 1, sets: 3, reps: 5, restSeconds: 150 },
+            { workoutId: annaW.id, exerciseId: exerciseMap['Shoulder Press'], position: 2, sets: 5, reps: 5, restSeconds: 90 },
+            { workoutId: juliaW.id, exerciseId: exerciseMap['Plank'], position: 0, sets: 3, reps: 45, restSeconds: 30 },
+            { workoutId: juliaW.id, exerciseId: exerciseMap['Leg Press'], position: 1, sets: 3, reps: 15, restSeconds: 45 },
         ]);
 
         // 10. Schedules & Attendances

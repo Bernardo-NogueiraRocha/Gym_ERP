@@ -74,7 +74,7 @@ export async function ProfessionalDashboard({ userId }: { userId: string }) {
     return (
         <div className="space-y-6 p-6">
             <header>
-                <h1 className="text-2xl font-bold tracking-tight text-white">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Hello Professional {professionalData.name}!
                 </h1>
                 <p className="text-sm text-zinc-400">

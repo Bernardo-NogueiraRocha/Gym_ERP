@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { workouts, workoutItems, exercises, students, user } from "@/db/schema";
+import { workouts, workoutItems, exercises, students, user, exerciseMuscles, muscles } from "@/db/schema";
 import { and, gte, lte, eq, or, isNull, asc } from "drizzle-orm";
 
 export async function getStudentData(userId: string) {
@@ -41,7 +41,8 @@ export async function getCurrentWorkoutsWithItems(studentId: string) {
 
     const workoutIds = activeWorkouts.map((w) => w.id);
 
-    const items = await getDb()
+    const db = getDb();
+    const items = await db
         .select({
             workoutId: workoutItems.workoutId,
             id: workoutItems.id,
@@ -49,15 +50,28 @@ export async function getCurrentWorkoutsWithItems(studentId: string) {
             reps: workoutItems.reps,
             sets: workoutItems.sets,
             restSeconds: workoutItems.restSeconds,
-            targetMuscles: exercises.targetMuscles,
         })
         .from(workoutItems)
         .innerJoin(exercises, eq(exercises.id, workoutItems.exerciseId))
         .where(or(...workoutIds.map((id) => eq(workoutItems.workoutId, id))))
         .orderBy(asc(workoutItems.position));
 
+    const muscleRows = await db.select({
+        workoutItemId: workoutItems.id,
+        name: muscles.name,
+        stimulusStrength: exerciseMuscles.stimulusStrength,
+    }).from(workoutItems)
+        .innerJoin(exerciseMuscles, eq(exerciseMuscles.exerciseId, workoutItems.exerciseId))
+        .innerJoin(muscles, eq(muscles.id, exerciseMuscles.muscleId))
+        .where(or(...workoutIds.map((id) => eq(workoutItems.workoutId, id))));
+
     return activeWorkouts.map((workout) => ({
         ...workout,
-        items: items.filter((item) => item.workoutId === workout.id),
+        items: items.filter((item) => item.workoutId === workout.id).map((item) => ({
+            ...item,
+            muscles: muscleRows
+                .filter((row) => row.workoutItemId === item.id)
+                .map(({ name, stimulusStrength }) => ({ name, stimulusStrength })),
+        })),
     }));
 }

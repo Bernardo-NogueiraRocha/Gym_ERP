@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { professionals,exercises } from "@/db/schema";
+import { professionals, exercises, exerciseMuscles, muscles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { WorkoutRegisterForm } from "@/components/register-workout/workout-register-form";
 import { getSession } from "@/lib/auth-server";
@@ -29,9 +29,21 @@ async function getProfessionalData(userId: string) {
 }
 
 async function GetExerciseList() {
-    const exercise_list = await getDb().select()
-            .from(exercises)
-    return exercise_list
+    const db = getDb();
+    const exercise_list = await db.select().from(exercises);
+    const muscleRows = await db.select({
+        exerciseId: exerciseMuscles.exerciseId,
+        name: muscles.name,
+        stimulusStrength: exerciseMuscles.stimulusStrength,
+    }).from(exerciseMuscles)
+        .innerJoin(muscles, eq(exerciseMuscles.muscleId, muscles.id));
+
+    return exercise_list.map((exercise) => ({
+        ...exercise,
+        muscles: muscleRows
+            .filter((row) => row.exerciseId === exercise.id)
+            .map(({ name, stimulusStrength }) => ({ name, stimulusStrength })),
+    }));
 }
 
 

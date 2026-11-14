@@ -4,7 +4,9 @@ import type { InferSelectModel } from "drizzle-orm";
 import { exercises } from "@/db/schema";
 import type { WorkoutItemDraft } from "./workout-item-draft";
 
-type Exercise = InferSelectModel<typeof exercises>;
+type Exercise = InferSelectModel<typeof exercises> & {
+    muscles: { name: string; stimulusStrength: number }[];
+};
 
 interface SelectedExercisesProps {
     items: WorkoutItemDraft[];
@@ -41,7 +43,12 @@ export function SelectedExercises({
                                 {index + 1}. {exercise.name}
                             </legend>
 
-                            <p className="text-sm text-slate-400">Target muscles: {exercise.targetMuscles}</p>
+                            <div className="text-sm text-slate-400">
+                                <span>Muscles: </span>
+                                {exercise.muscles.length
+                                    ? exercise.muscles.map((muscle) => `${muscle.name} (${muscle.stimulusStrength})`).join(", ")
+                                    : "None assigned"}
+                            </div>
 
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 <label className="space-y-1 text-sm text-slate-200">

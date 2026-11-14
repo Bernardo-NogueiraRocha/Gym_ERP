@@ -15,7 +15,9 @@ import type { getWorkoutRequests } from "@/lib/queries/workout-requests";
 import { createWorkoutAction } from "@/app/actions/workout-register/actions";
 import { format } from "date-fns";
 
-type Exercise = InferSelectModel<typeof exercises>;
+type Exercise = InferSelectModel<typeof exercises> & {
+    muscles: { name: string; stimulusStrength: number }[];
+};
 
 interface WorkoutRegisterFormProps {
     exercises: Exercise[];
