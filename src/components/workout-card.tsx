@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "./ui/button";
+import Link from "next/link";
 
 type WorkoutItem = {
     id: string;
@@ -115,6 +117,11 @@ export function WorkoutCard({ workout }: { workout: Workout }) {
                             ))}
                         </ul>
                     )}
+                    <div className="flex justify-center">
+                        <Link href={`/attend-workout/${workout.id}`}>
+                            <Button>Attend Workout</Button>
+                        </Link>
+                    </div>
                 </div>
             )}
         </div>

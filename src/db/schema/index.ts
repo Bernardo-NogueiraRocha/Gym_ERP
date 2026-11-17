@@ -16,3 +16,4 @@ export * from './professionals_students'
 export * from './workout-requests';
 export * from './plan_features';
 export * from './muscles';
+export * from './workout_sessions'
