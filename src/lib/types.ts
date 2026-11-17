@@ -18,6 +18,6 @@ export type AccountProps = {
     userData: UserData | null;
 };
 // Exercises (attend-workout)
-import { getAllExercises, getExercisesWorkoutItems } from "./queries/exercises";
-export type WorkoutItems = Awaited<ReturnType<typeof getExercisesWorkoutItems>>;
+import { getAllExercises, getWorkoutItemsWithMuscles } from "./queries/exercises";
+export type WorkoutItems = Awaited<ReturnType<typeof getWorkoutItemsWithMuscles>>;
 export type ExerciseOption = Awaited<ReturnType<typeof getAllExercises>>[number];

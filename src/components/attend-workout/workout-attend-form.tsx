@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useMemo } from "react";
 import { workouts } from "@/db/schema";
 import { InferSelectModel } from "drizzle-orm";
 import type { WorkoutItems, ExerciseOption } from "@/lib/types";
+import BodyHighlighter from './body-highlighter'
+import type { ExtendedBodyPart, Slug } from "@mjcdev/react-body-highlighter";
 
 type Workout = InferSelectModel<typeof workouts>;
+
+type MuscleStimulus = {
+    slug: string;
+    stimulusStrength: number;
+};
 
 interface WorkoutAttendanceFormProps {
     workoutItems: WorkoutItems;
@@ -25,6 +32,7 @@ type ActiveExercise = {
     exerciseId: string;
     exerciseName: string;
     restSeconds: number | null;
+    muscles: MuscleStimulus[];
     sets: ActiveSet[];
 };
 
@@ -42,6 +50,7 @@ function buildInitialExercises(items: WorkoutItems): ActiveExercise[] {
                 actualWeight: "",
                 completed: false,
             })),
+            muscles: item.muscles
         };
     });
 }
@@ -73,28 +82,60 @@ export function WorkoutAttendanceForm({
         );
     }
 
+    const highlightedMuscles = useMemo<ExtendedBodyPart[]>(() => {
+        const totals = new Map<string, number>();
+
+        // Sum stimulusStrength for every COMPLETED set
+        for (const exercise of activeExercises) {
+            const completedSetsCount = exercise.sets.filter((s) => s.completed).length;
+            if (completedSetsCount === 0) continue;
+
+            for (const muscle of exercise.muscles) {
+                const addedStimulus = muscle.stimulusStrength * completedSetsCount;
+                totals.set(muscle.slug, (totals.get(muscle.slug) ?? 0) + addedStimulus);
+            }
+        }
+
+        if (totals.size === 0) return [];
+
+        // Bucket totals into intensity 1, 2, or 3 relative to the highest-worked muscle
+        const maxStimulus = Math.max(...totals.values());
+
+        return Array.from(totals.entries()).map(([slug, total]) => {
+            const ratio = total / maxStimulus;
+            let intensity = 1;
+            if (ratio > 0.66) intensity = 3;
+            else if (ratio > 0.33) intensity = 2;
+
+            return {
+                slug: slug as Slug,
+                intensity,
+            };
+        });
+    }, [activeExercises]);
+
     return (
-        <div className="space-y-6 grid grid-cols-2">
-            <div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="space-y-4">
                 {activeExercises.map((exercise, exIndex) => (
                     <div
                         key={`${exercise.exerciseId}-${exIndex}`}
-                        className="rounded-xl border border-background bg-card p-4 space-y-3"
+                        className="space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm"
                     >
                         {/* Exercise Header */}
                         <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-white">
+                            <h3 className="font-semibold text-card-foreground">
                                 {exIndex + 1}. {exercise.exerciseName}
                             </h3>
                             {exercise.restSeconds && (
-                                <span className="text-xs text-zinc-400">
+                                <span className="text-xs text-muted-foreground">
                                     Rest: {exercise.restSeconds}s
                                 </span>
                             )}
                         </div>
 
                         {/* Column Labels */}
-                        <div className="grid grid-cols-12 gap-2 text-xs font-medium text-zinc-400 px-2">
+                        <div className="grid grid-cols-12 gap-2 px-2 text-xs font-medium text-muted-foreground">
                             <div className="col-span-2">Set</div>
                             <div className="col-span-4">Weight (kg)</div>
                             <div className="col-span-4">Reps</div>
@@ -107,11 +148,11 @@ export function WorkoutAttendanceForm({
                                 <div
                                     key={set.setNumber}
                                     className={`grid grid-cols-12 items-center gap-2 rounded-lg p-2 transition-colors ${set.completed
-                                            ? "bg-emerald-500/10 border border-emerald-500/30"
-                                            : "bg-zinc-950/60 border border-zinc-800"
+                                        ? "border border-success/30 bg-success/10"
+                                        : "border border-border bg-muted"
                                         }`}
                                 >
-                                    <div className="col-span-2 text-sm font-semibold text-zinc-300">
+                                    <div className="col-span-2 text-sm font-semibold text-foreground">
                                         {set.setNumber}
                                     </div>
 
@@ -126,7 +167,7 @@ export function WorkoutAttendanceForm({
                                                     actualWeight: e.target.value,
                                                 })
                                             }
-                                            className="w-full rounded bg-zinc-900 border border-zinc-700 px-2 py-1 text-sm text-white"
+                                            className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         />
                                     </div>
 
@@ -144,7 +185,7 @@ export function WorkoutAttendanceForm({
                                                     actualReps: e.target.value,
                                                 })
                                             }
-                                            className="w-full rounded bg-zinc-900 border border-zinc-700 px-2 py-1 text-sm text-white"
+                                            className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         />
                                     </div>
 
@@ -157,7 +198,7 @@ export function WorkoutAttendanceForm({
                                                     completed: e.target.checked,
                                                 })
                                             }
-                                            className="h-5 w-5 accent-emerald-500 cursor-pointer"
+                                            className="h-5 w-5 cursor-pointer accent-success focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         />
                                     </div>
                                 </div>
@@ -166,9 +207,18 @@ export function WorkoutAttendanceForm({
                     </div>
                 ))}
             </div>
-            <div>
-                Stimulus Visualizer
-            </div>
+            <section className="h-fit space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm">
+                <div>
+                    <h2 className="font-semibold">Muscle activation</h2>
+                    <p className="text-sm text-muted-foreground">Highlights update as you complete sets.</p>
+                </div>
+                <BodyHighlighter data={highlightedMuscles} />
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground" aria-label="Muscle activation intensity legend">
+                    <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-info" />Light</span>
+                    <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-primary" />Moderate</span>
+                    <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-accent" />High</span>
+                </div>
+            </section>
         </div>
     );
 }

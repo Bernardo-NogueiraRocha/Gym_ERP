@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { exercises, workoutItems, exerciseMuscles,muscles } from "@/db/schema";
+import { exercises, workoutItems, exerciseMuscles, muscles } from "@/db/schema";
 import { asc, eq } from "drizzle-orm";
 
 export async function getAllExercises() {
@@ -50,8 +50,20 @@ export async function getWorkoutItemsWithMuscles(workoutId: string) {
         .where(eq(workoutItems.workoutId, workoutId))
         .orderBy(asc(workoutItems.position));
 
-    // Group duplicated SQL rows back into 1 object per workoutItem
-    const grouped = new Map<string, any>();
+    type WorkoutItemWithMuscles = {
+        id: string;
+        position: number;
+        sets: number;
+        reps: number;
+        restSeconds: number;
+        exerciseId: string;
+        exerciseName: string;
+        muscles: { name: string; slug: string; stimulusStrength: number }[];
+    };
+
+    // A left join returns one row per muscle, so group those rows back into
+    // one item per exercise in the workout.
+    const grouped = new Map<string, WorkoutItemWithMuscles>();
 
     for (const row of rows) {
         if (!grouped.has(row.id)) {
@@ -67,8 +79,12 @@ export async function getWorkoutItemsWithMuscles(workoutId: string) {
             });
         }
 
-        if (row.muscleSlug && row.muscleName) {
-            grouped.get(row.id).muscles.push({
+        if (
+            row.muscleSlug !== null &&
+            row.muscleName !== null &&
+            row.stimulusStrength !== null
+        ) {
+            grouped.get(row.id)!.muscles.push({
                 name: row.muscleName,
                 slug: row.muscleSlug,
                 stimulusStrength: row.stimulusStrength,
