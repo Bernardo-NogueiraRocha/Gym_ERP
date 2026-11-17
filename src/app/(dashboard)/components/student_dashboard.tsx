@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { WorkoutCard } from "@/components/workout-card";
-import {getCurrentWorkoutsWithItems,getStudentData} from '@/lib/queries/students'
+import { getCurrentWorkoutsWithItems, getStudentData, getWorkoutSessions } from "@/lib/queries/students";
+import { CurrentWorkoutsSection } from "./current-workouts-section";
+import { WorkoutCalendarPanel } from "./workout-calendar-panel";
+import { WorkoutSessionsSection } from "./workout-sessions-section";
 
 export async function StudentDashboard({ userId }: { userId: string }) {
     const studentData = await getStudentData(userId);
@@ -22,29 +24,23 @@ export async function StudentDashboard({ userId }: { userId: string }) {
         );
     }
 
-    const currentWorkouts = await getCurrentWorkoutsWithItems(studentData.studentId);
-
-    if (!currentWorkouts.length) {
-        return (
-            <div className="mx-auto max-w-lg rounded-xl border border-zinc-800 bg-zinc-900/40 p-12 text-center">
-                <div className="mx-auto mb-3 text-3xl">🧘‍♂️</div>
-                <h2 className="text-xl font-bold text-zinc-100">No active workout scheduled</h2>
-                <p className="mt-1 text-sm text-zinc-400">Would you like to request a workout?</p>
-                <Link href='/request-workout'>
-                    <Button className="mt-2 bg-blue-500">
-                        Request Workout
-                    </Button>
-                </Link>
-            </div>
-        );
-    }
+    const [currentWorkouts, sessions] = await Promise.all([
+        getCurrentWorkoutsWithItems(studentData.studentId),
+        getWorkoutSessions(studentData.studentId),
+    ]);
+    const workoutDates = [...new Set(sessions.map((session) => {
+        const date = new Date(session.startedAt);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }))];
 
     return (
-        <div className="mx-auto max-w-3xl space-y-4 mt-5">
-            <h1 className="text-2xl font-bold text-white mb-2">Current Workouts</h1>
-            {currentWorkouts.map((workout) => (
-                <WorkoutCard key={workout.id} workout={workout} />
-            ))}
+        <div className="mx-auto mt-5 max-w-5xl space-y-8 px-4">
+            <CurrentWorkoutsSection workouts={currentWorkouts} />
+
+            <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <WorkoutSessionsSection sessions={sessions} />
+                <WorkoutCalendarPanel workoutDates={workoutDates} />
+            </section>
         </div>
     );
 }

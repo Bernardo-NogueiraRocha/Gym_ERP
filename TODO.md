@@ -25,12 +25,14 @@ Current backlog for Gym ERP. Items marked complete reflect functionality or infr
 - [x] Let students submit workout requests and professionals view requests.
 - [x] Provide a workout registration form for professionals.
 - [x] Define workout and workout-item database schemas.
-- [ ] Finish workout assignment and editing workflows, including authorization for assigned students.
-- [ ] Implement workout-session logging for performed sets, repetitions, and weights.
-- [ ] Complete the attend-workout page and connect it to workout-session tracking.
-- [ ] Add progress history and analytics for students and professionals.
+- [~] Finish workout assignment and editing workflows, including authorization for assigned students.
+- [X] Implement workout-session logging for performed sets, repetitions, and weights.
+- [X] Complete the attend-workout page and connect it to workout-session tracking.
+- [ ] Add an exercise search mechanism in attend workout
+- [ ] Add cardio based exercises (don't need reps or weight)
+- [~] Add progress history and analytics for students and professionals.
 - [ ] Add student intake information, including goals, experience, and injury history.
-- [ ] Improve dashboards with complete role-specific actions and operational metrics.
+- [~] Improve dashboards with complete role-specific actions and operational metrics.
 
 ## Administration and operations
 

@@ -17,6 +17,7 @@ Gym ERP is a web-based management system for fitness centers. It brings together
 ### Workout Management
 - Student workout requests.
 - Professional workout registration and editing.
+- Workout session logging and history
 
 ### Financial Management
 - Membership checkout.

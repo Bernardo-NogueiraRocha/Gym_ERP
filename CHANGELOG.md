@@ -4,6 +4,18 @@ Notable changes to Gym ERP are documented here. This file follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-11-17
+
+### Added
+
+- Attend Workout pipeline
+  - Stimulus visualizer with react-body-highlighter
+  - Server action for finishing workout
+- Updated Student dashboard
+  - Workout Sessions cards
+  - Calendar with days in which there was a registered workout session
+
+
 ## [0.1.11] - 2026-11-04
 
 ### Added

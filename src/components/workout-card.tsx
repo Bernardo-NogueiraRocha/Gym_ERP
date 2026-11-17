@@ -43,12 +43,12 @@ export function WorkoutCard({ workout }: { workout: Workout }) {
             >
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                        <h3 className="text-xl font-bold text-white">{workout.title}</h3>
-                        <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+                        <h3 className="text-xl font-bold text-foreground">{workout.title}</h3>
+                        <span className="inline-flex items-center rounded-full bg-card px-2.5 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
                             Active Routine
                         </span>
                     </div>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-foreground">
                         {workout.items.length} {workout.items.length === 1 ? "exercise" : "exercises"}
                     </p>
                 </div>

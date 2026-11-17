@@ -1,11 +1,13 @@
 "use client";
 
-import { useState,useMemo } from "react";
+import { useState, useMemo, SubmitEvent } from "react";
 import { workouts } from "@/db/schema";
 import { InferSelectModel } from "drizzle-orm";
 import type { WorkoutItems, ExerciseOption } from "@/lib/types";
 import BodyHighlighter from './body-highlighter'
 import type { ExtendedBodyPart, Slug } from "@mjcdev/react-body-highlighter";
+import { Button } from "../ui/button";
+import { finishWorkoutAction } from '@/app/actions/attend-workout/actions'
 
 type Workout = InferSelectModel<typeof workouts>;
 
@@ -64,6 +66,10 @@ export function WorkoutAttendanceForm({
         buildInitialExercises(workoutItems)
     );
 
+    const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [startedAt] = useState<string>(() => new Date().toISOString());
+
     function updateSet(
         exerciseIndex: number,
         setIndex: number,
@@ -80,6 +86,47 @@ export function WorkoutAttendanceForm({
                 };
             })
         );
+    }
+
+    const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        setError(null);
+        setIsSubmitting(true);
+        const completedAt = new Date().toISOString();
+        const formattedSets = activeExercises.flatMap(
+            (exercise) => exercise.sets.map(
+                (set) => {
+                    const parsedRep = set.actualReps.trim() == "" ? null : Number(set.actualReps)
+                    const parsedWeight = set.actualWeight.trim() == ""
+                        ? null
+                        : Number(set.actualWeight).toFixed(2)
+                    return {
+                        exerciseId: exercise.exerciseId,
+                        setNumber: set.setNumber,
+                        targetReps: set.targetReps,
+                        actualReps: parsedRep,
+                        actualWeight: parsedWeight,
+                        completed: set.completed,
+                    }
+                }
+            )
+        )
+        try {
+            const result = await finishWorkoutAction(
+                {
+                    workoutId: workoutData.id,
+                    startedAt: startedAt,
+                    completedAt: completedAt,
+                    sets: formattedSets
+                }
+            )
+        }
+        catch (submitError) {
+            setError(submitError instanceof Error ? submitError.message : 'Failed to finish workout session')
+        }
+        finally {
+            setIsSubmitting(false)
+        }
     }
 
     const highlightedMuscles = useMemo<ExtendedBodyPart[]>(() => {
@@ -115,110 +162,122 @@ export function WorkoutAttendanceForm({
     }, [activeExercises]);
 
     return (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="space-y-4">
-                {activeExercises.map((exercise, exIndex) => (
-                    <div
-                        key={`${exercise.exerciseId}-${exIndex}`}
-                        className="space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm"
-                    >
-                        {/* Exercise Header */}
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-card-foreground">
-                                {exIndex + 1}. {exercise.exerciseName}
-                            </h3>
-                            {exercise.restSeconds && (
-                                <span className="text-xs text-muted-foreground">
-                                    Rest: {exercise.restSeconds}s
-                                </span>
-                            )}
+        <form onSubmit={handleSubmit}>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="space-y-4">
+                    {activeExercises.map((exercise, exIndex) => (
+                        <div
+                            key={`${exercise.exerciseId}-${exIndex}`}
+                            className="space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm"
+                        >
+                            {/* Exercise Header */}
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-card-foreground">
+                                    {exIndex + 1}. {exercise.exerciseName}
+                                </h3>
+                                {exercise.restSeconds && (
+                                    <span className="text-xs text-muted-foreground">
+                                        Rest: {exercise.restSeconds}s
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Column Labels */}
+                            <div className="grid grid-cols-12 gap-2 px-2 text-xs font-medium text-muted-foreground">
+                                <div className="col-span-2">Set</div>
+                                <div className="col-span-4">Weight (kg)</div>
+                                <div className="col-span-4">Reps</div>
+                                <div className="col-span-2 text-center">Done</div>
+                            </div>
+
+                            {/* One Row Per Set */}
+                            <div className="space-y-2">
+                                {exercise.sets.map((set, setIndex) => (
+                                    <div
+                                        key={set.setNumber}
+                                        className={`grid grid-cols-12 items-center gap-2 rounded-lg p-2 transition-colors ${set.completed
+                                            ? "border border-success/30 bg-success/10"
+                                            : "border border-border bg-muted"
+                                            }`}
+                                    >
+                                        <div className="col-span-2 text-sm font-semibold text-foreground">
+                                            {set.setNumber}
+                                        </div>
+
+                                        <div className="col-span-4">
+                                            <input
+                                                type="number"
+                                                step="0.5"
+                                                placeholder="0"
+                                                value={set.actualWeight}
+                                                onChange={(e) =>
+                                                    updateSet(exIndex, setIndex, {
+                                                        actualWeight: e.target.value,
+                                                    })
+                                                }
+                                                className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                            />
+                                        </div>
+
+                                        <div className="col-span-4">
+                                            <input
+                                                type="number"
+                                                placeholder={
+                                                    set.targetReps
+                                                        ? String(set.targetReps)
+                                                        : "0"
+                                                }
+                                                value={set.actualReps}
+                                                onChange={(e) =>
+                                                    updateSet(exIndex, setIndex, {
+                                                        actualReps: e.target.value,
+                                                    })
+                                                }
+                                                className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                            />
+                                        </div>
+
+                                        <div className="col-span-2 flex justify-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={set.completed}
+                                                onChange={(e) =>
+                                                    updateSet(exIndex, setIndex, {
+                                                        completed: e.target.checked,
+                                                    })
+                                                }
+                                                className="h-5 w-5 cursor-pointer accent-success focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-
-                        {/* Column Labels */}
-                        <div className="grid grid-cols-12 gap-2 px-2 text-xs font-medium text-muted-foreground">
-                            <div className="col-span-2">Set</div>
-                            <div className="col-span-4">Weight (kg)</div>
-                            <div className="col-span-4">Reps</div>
-                            <div className="col-span-2 text-center">Done</div>
-                        </div>
-
-                        {/* One Row Per Set */}
-                        <div className="space-y-2">
-                            {exercise.sets.map((set, setIndex) => (
-                                <div
-                                    key={set.setNumber}
-                                    className={`grid grid-cols-12 items-center gap-2 rounded-lg p-2 transition-colors ${set.completed
-                                        ? "border border-success/30 bg-success/10"
-                                        : "border border-border bg-muted"
-                                        }`}
-                                >
-                                    <div className="col-span-2 text-sm font-semibold text-foreground">
-                                        {set.setNumber}
-                                    </div>
-
-                                    <div className="col-span-4">
-                                        <input
-                                            type="number"
-                                            step="0.5"
-                                            placeholder="0"
-                                            value={set.actualWeight}
-                                            onChange={(e) =>
-                                                updateSet(exIndex, setIndex, {
-                                                    actualWeight: e.target.value,
-                                                })
-                                            }
-                                            className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-4">
-                                        <input
-                                            type="number"
-                                            placeholder={
-                                                set.targetReps
-                                                    ? String(set.targetReps)
-                                                    : "0"
-                                            }
-                                            value={set.actualReps}
-                                            onChange={(e) =>
-                                                updateSet(exIndex, setIndex, {
-                                                    actualReps: e.target.value,
-                                                })
-                                            }
-                                            className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                        />
-                                    </div>
-
-                                    <div className="col-span-2 flex justify-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={set.completed}
-                                            onChange={(e) =>
-                                                updateSet(exIndex, setIndex, {
-                                                    completed: e.target.checked,
-                                                })
-                                            }
-                                            className="h-5 w-5 cursor-pointer accent-success focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                    ))}
+                </div>
+                <section className="h-fit space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm">
+                    <div>
+                        <h2 className="font-semibold">Muscle activation</h2>
+                        <p className="text-sm text-muted-foreground">Highlights update as you complete sets.</p>
                     </div>
-                ))}
+                    <BodyHighlighter data={highlightedMuscles} />
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground" aria-label="Muscle activation intensity legend">
+                        <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-info" />Light</span>
+                        <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-primary" />Moderate</span>
+                        <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-accent" />High</span>
+                    </div>
+                </section>
             </div>
-            <section className="h-fit space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm">
-                <div>
-                    <h2 className="font-semibold">Muscle activation</h2>
-                    <p className="text-sm text-muted-foreground">Highlights update as you complete sets.</p>
-                </div>
-                <BodyHighlighter data={highlightedMuscles} />
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground" aria-label="Muscle activation intensity legend">
-                    <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-info" />Light</span>
-                    <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-primary" />Moderate</span>
-                    <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-accent" />High</span>
-                </div>
-            </section>
-        </div>
+            <div className="flex justify-center m-5">
+                <Button
+                    className='text-lg'
+                    disabled={isSubmitting}
+                    type="submit"
+                >
+                    {isSubmitting? "Saving Workout": 'Finish Workout'}
+                </Button>
+            </div>
+        </form>
     );
 }
