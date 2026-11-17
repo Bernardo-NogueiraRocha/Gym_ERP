@@ -17,7 +17,7 @@ Current backlog for Gym ERP. Items marked complete reflect functionality or infr
 - [x] Show membership and payment information on the account page.
 - [ ] Integrate a payment provider for recurring billing.
 - [ ] Add and verify payment webhook handling, including successful and failed payments.
-- [ ] Implement payment and expense tracking workflows and financial metrics.
+- [ ] Implement payment and expense tracking workflows and financial metrics. 
 
 ## Students, professionals, and workouts
 

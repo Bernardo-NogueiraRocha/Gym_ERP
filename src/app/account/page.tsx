@@ -14,12 +14,15 @@ export const metadata: Metadata = {
   description: 'Account info GYM_ERP.',
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function AccountPage() {
   let session;
+  const requestHeaders = await headers();
 
   try {
     session = await auth.api.getSession({
-      headers: await headers(),
+      headers: requestHeaders,
     });
   } catch (error) {
     console.error("Failed to fetch session:", error);
