@@ -1,29 +1,29 @@
 'use client';
 
 import { useState, useTransition } from "react";
-import { workoutRequests, experienceLevelEnum } from "@/db/schema";
-import { InferInsertModel } from "drizzle-orm";
 import { Button } from "../ui/button";
 import { requestWorkoutAction } from "@/app/actions/request-workout/actions";
+import { experienceLevels, type ExperienceLevel } from "@/schemas/workout-request";
 
-type NewWorkoutRequest = InferInsertModel<typeof workoutRequests>;
-
-export function WorkoutRequestForm({ studentId }: { studentId: string }) {
-    const [experienceLevel, setExperienceLevel] = useState<NewWorkoutRequest['experienceLevel']>('beginner');
+export function WorkoutRequestForm() {
+    const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('beginner');
     const [priorities, setPriorities] = useState<string>('');
     const [focusedMuscles, setFocusedMuscles] = useState<string>('');
     const [hasInjuries, setHasInjuries] = useState<boolean>(false);
     const [injuryDetails, setInjuryDetails] = useState<string>('');
+    const [error, setError] = useState<string | null>(null);
+    const [submitted, setSubmitted] = useState(false);
 
     const [isPending, startTransition] = useTransition();
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setError(null);
+        setSubmitted(false);
 
         startTransition(async () => {
             try {
-                await requestWorkoutAction({
-                    studentId,
+                const result = await requestWorkoutAction({
                     experienceLevel,
                     priorities,
                     focusedMuscles,
@@ -31,9 +31,18 @@ export function WorkoutRequestForm({ studentId }: { studentId: string }) {
                     injuryDetails: hasInjuries ? injuryDetails : null,
                 });
 
-                alert("Workout request submitted successfully!");
-            } catch (error) {
-                alert("Something went wrong. Please try again.");
+                if (!result.success) {
+                    setError(result.error);
+                    return;
+                }
+
+                setSubmitted(true);
+                setPriorities('');
+                setFocusedMuscles('');
+                setHasInjuries(false);
+                setInjuryDetails('');
+            } catch {
+                setError("Something went wrong. Please try again.");
             }
         });
     };
@@ -43,6 +52,18 @@ export function WorkoutRequestForm({ studentId }: { studentId: string }) {
             <h2 className="text-center text-2xl font-semibold text-slate-100 mb-6">
                 Request Workout
             </h2>
+
+            {error && (
+                <div className="mb-4 rounded border border-red-500 bg-red-900/50 p-3 text-sm text-red-200">
+                    {error}
+                </div>
+            )}
+
+            {submitted && (
+                <div className="mb-4 rounded border border-green-500 bg-green-900/50 p-3 text-sm text-green-200">
+                    Workout request submitted successfully.
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -54,7 +75,7 @@ export function WorkoutRequestForm({ studentId }: { studentId: string }) {
                         </div>
 
                         <div className="flex gap-4">
-                            {experienceLevelEnum.enumValues.map((level) => (
+                            {experienceLevels.map((level) => (
                                 <label key={level} className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
                                     <input
                                         type="radio"

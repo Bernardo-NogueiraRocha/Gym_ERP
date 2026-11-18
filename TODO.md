@@ -44,13 +44,13 @@ Current backlog for Gym ERP. Items marked complete reflect functionality or infr
 
 ## Quality and security
 
-- [ ] Add unit tests for date utilities and validation schemas.
+- [x] Add unit tests for date utilities and validation schemas.
 - [ ] Add integration tests for database constraints and deletion behavior.
 - [ ] Add component tests for interactive UI and checkout states.
 - [ ] Add end-to-end tests for authentication, memberships, and workout flows.
 - [ ] Verify role-based access control on protected pages, queries, and server actions.
 - [ ] Review input/output handling, data privacy, and sensitive-data exposure.
-- [ ] Fix timezone-sensitive date calculations and add regression tests.
-- [ ] Fix non-atomic student registration and return safe, consistent errors.
+- [~] Fix timezone-sensitive date calculations and add regression tests. Billing dates are fixed and tested; other date usages still need review.
+- [x] Fix non-atomic student registration and return safe, consistent errors. Failures now remove the partial auth account.
 - [ ] Consolidate duplicate routes/components and correct Server/Client component prop issues.
 - [ ] Standardize naming and improve consistency across schemas, actions, and components.

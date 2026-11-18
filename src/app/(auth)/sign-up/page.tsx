@@ -6,10 +6,17 @@ import Link from 'next/link';
 import { registerStudentAction } from '@/app/actions/auth';
 import { isValidCPF, isValidPhone, formatCPF, formatPhone } from '@/schemas/student';
 
+function FieldError({ messages }: { messages?: string[] }) {
+  if (!messages?.length) return null;
+
+  return <p className="mt-1 text-xs text-red-400">{messages[0]}</p>;
+}
+
 export default function SignUpPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[] | undefined>>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -31,29 +38,37 @@ export default function SignUpPage() {
             ? formatPhone(value)
             : value,
     }));
+
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
     setError(null);
+    setFieldErrors({});
 
     try {
       const formData = new FormData(e.currentTarget);
       const result = await registerStudentAction(formData);
 
       if (!result.success) {
-        setError(result.error || 'Failed to complete registration.');
+        const errors = result.errors ?? {};
+        setFieldErrors(errors);
+
+        const hasFieldErrors = Object.values(errors).some((messages) => messages?.length);
+        if (!hasFieldErrors) {
+          setError(result.error || 'Failed to complete registration.');
+        }
       } else {
         router.push('/plans');
         router.refresh();
       }
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'An unexpected error occurred.'
-      );
+    } catch {
+      // Never surface driver/config error messages to the browser.
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,6 +104,7 @@ export default function SignUpPage() {
             placeholder="John Doe"
             className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
           />
+          <FieldError messages={fieldErrors.name} />
         </div>
 
         {/* Email */}
@@ -105,6 +121,7 @@ export default function SignUpPage() {
             placeholder="john@example.com"
             className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
           />
+          <FieldError messages={fieldErrors.email} />
         </div>
 
         {/* Password */}
@@ -122,6 +139,7 @@ export default function SignUpPage() {
             placeholder="••••••••"
             className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
           />
+          <FieldError messages={fieldErrors.password} />
         </div>
 
         {/* Domain Data: CPF & Phone Grid */}
@@ -154,6 +172,7 @@ export default function SignUpPage() {
                   : "✕ Invalid CPF"}
               </p>
             )}
+            <FieldError messages={fieldErrors.cpf} />
           </div>
 
           <div>
@@ -182,6 +201,7 @@ export default function SignUpPage() {
                   : "✕ Invalid phone number"}
               </p>
             )}
+            <FieldError messages={fieldErrors.phone} />
           </div>
         </div>
 

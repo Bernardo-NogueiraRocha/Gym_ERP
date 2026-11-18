@@ -75,6 +75,12 @@ export async function MembershipInfo({ userId }: { userId: string }) {
                 </div>
             </dl>
 
+            {membership.status === 'pending' && (
+                <p className="mt-4 rounded-lg border border-amber-700/60 bg-amber-950/40 p-3 text-sm text-amber-200">
+                    Pending payment. This membership does not grant access until the first payment is confirmed.
+                </p>
+            )}
+
             <div className="mt-6 border-t border-slate-800 pt-4">
                 <h3 className="font-semibold text-foreground">Membership payments</h3>
                 {payments.length === 0 ? (
