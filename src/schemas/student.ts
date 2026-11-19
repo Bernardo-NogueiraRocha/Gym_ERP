@@ -82,6 +82,13 @@ const phoneSchema = z
     message: "Phone number must have DDD + 9 digits",
   });
 
+// The sign-up form always submits a string, using "" for an untouched field.
+// Treat that as "not provided" instead of failing the optional phone rule.
+const optionalPhoneSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  phoneSchema.optional(),
+);
+
 export const registerStudentSchema = z.object({
   name: z
     .string()
@@ -89,7 +96,12 @@ export const registerStudentSchema = z.object({
     .min(2, "The name must have at least 2 characters.")
     .max(100),
 
-  email: z.email(),
+  // Better Auth stores emails lowercased; normalize here so duplicate checks
+  // and the stored value agree.
+  email: z.preprocess(
+    (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
+    z.email(),
+  ),
 
   password: z
     .string()
@@ -97,7 +109,7 @@ export const registerStudentSchema = z.object({
 
   cpf: cpfSchema,
 
-  phone: phoneSchema.optional(),
+  phone: optionalPhoneSchema,
 });
 
 export type RegisterStudentInput = z.infer<typeof registerStudentSchema>;

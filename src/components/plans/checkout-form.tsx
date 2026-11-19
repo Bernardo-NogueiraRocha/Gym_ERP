@@ -7,10 +7,9 @@ import { subscribeToPlanAction } from '@/app/actions/plans';
 
 interface CheckoutFormProps {
   planId: string;
-  userId: string;
 }
 
-export function CheckoutForm({ planId, userId }: CheckoutFormProps) {
+export function CheckoutForm({ planId }: CheckoutFormProps) {
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
@@ -20,16 +19,13 @@ export function CheckoutForm({ planId, userId }: CheckoutFormProps) {
     setErrorMessage(null);
 
     startTransition(async () => {
-      const result = await subscribeToPlanAction({
-        planId,
-        userId,
-      });
+      const result = await subscribeToPlanAction({ planId });
 
       if (!result.success) {
         setErrorMessage(result.error ?? 'An unexpected error occurred.');
       } else {
-        // Redirect or refresh upon success
-        router.push('/');
+        router.push('/account');
+        router.refresh();
       }
     });
   };
@@ -39,6 +35,12 @@ export function CheckoutForm({ planId, userId }: CheckoutFormProps) {
       <h3 className="font-medium text-lg">
         Can you confirm that is the plan you want to subscribe to?
       </h3>
+
+      <p className="max-w-prose text-sm text-slate-400">
+        Your membership will be created as <strong>pending payment</strong>.
+        It becomes active once the first payment is confirmed, so it will not
+        grant access immediately.
+      </p>
 
       {errorMessage && (
         <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">

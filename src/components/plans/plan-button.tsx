@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 type PlanButtonProps = {
     planId: string;
     isCurrentPlan?: boolean;
+    hasLiveMembership?: boolean;
 };
 
 export function PlanButton({
     planId,
     isCurrentPlan = false,
+    hasLiveMembership = false,
 }: PlanButtonProps) {
     if (isCurrentPlan) {
         return (
@@ -18,6 +20,19 @@ export function PlanButton({
                 disabled
             >
                 Current Plan
+            </Button>
+        );
+    }
+
+    // One live membership per student for now: don't send users into a
+    // checkout that the server will reject.
+    if (hasLiveMembership) {
+        return (
+            <Button
+                className="mt-4 w-3/4"
+                disabled
+            >
+                Membership active
             </Button>
         );
     }

@@ -6,7 +6,7 @@ import { getSession } from "@/lib/auth-server";
 import { AccessDenied } from "@/components/access-denied";
 import type { Metadata } from 'next';
 import { getWorkoutRequests } from "@/lib/queries/workout-requests";
-import { getStudentList } from "@/lib/queries/students";
+import { getAssignedStudentList } from "@/lib/queries/students";
 
 export const metadata: Metadata = {
   title: 'Register Workout | GYM_ERP',
@@ -73,9 +73,14 @@ export default async function RegisterWorkoutPage() {
     }
     const exercise_list = await GetExerciseList();
 
-    const workoutRequest_list = await getWorkoutRequests();
+    const usersData = await getAssignedStudentList(professionalData.id);
 
-    const usersData = await getStudentList();
+    // Only surface requests from students this professional is responsible for.
+    const assignedStudentIds = new Set(usersData.map((student) => student.student_id));
+    const workoutRequest_list = (await getWorkoutRequests()).filter((request) =>
+        assignedStudentIds.has(request.studentId)
+    );
+
     return (
         <div>
             <WorkoutRegisterForm

@@ -1,131 +1,136 @@
 'use server';
 
-import { getDb } from "@/db";
-import { students, memberships, billingEnum, plans, payments } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { getDb } from '@/db';
+import { memberships, payments, plans, students } from '@/db/schema';
+import { and, eq, inArray } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { getSession } from '@/lib/auth-server';
+import { isUniqueViolation } from '@/lib/db-errors';
+import {
+  addFrequencyToDate,
+  addMonthsToDate,
+  FREQUENCY_MONTHS,
+  todayIsoDate,
+} from '@/lib/dates';
 
-type Frequency = (typeof billingEnum.enumValues)[number];
+type NewPayment = typeof payments.$inferInsert;
 
-const FREQUENCY_MONTHS: Record<Frequency, number> = {
-  'mensal': 1,
-  'quarterly': 3,
-  'semiannual': 6,
-  'annual': 12,
-};
+const subscribeSchema = z.object({
+  planId: z.string().uuid('Invalid plan.'),
+});
 
-function addFrequencyToDate(startDateStr: string, frequency: Frequency): string {
-  const [year, month, day] = startDateStr.split('-').map(Number);
-  const result = new Date(year, month - 1, day);
+export type SubscribeToPlanResult =
+  | { success: true }
+  | { success: false; error: string };
 
-  const monthsToAdd = FREQUENCY_MONTHS[frequency];
-  const targetMonthIndex = (result.getMonth() + monthsToAdd) % 12;
+const DUPLICATE_MEMBERSHIP =
+  'You already have a pending or active membership.';
 
-  result.setMonth(result.getMonth() + monthsToAdd);
-
-  if (result.getMonth() !== targetMonthIndex) {
-    result.setDate(0);
-  }
-
-  const yyyy = result.getFullYear();
-  const mm = String(result.getMonth() + 1).padStart(2, '0');
-  const dd = String(result.getDate()).padStart(2, '0');
-
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function addMonthsToDate(startDateStr: string, months: number) {
-  const [year, month, day] = startDateStr.split('-').map(Number);
-  const result = new Date(year, month - 1, day);
-  const targetMonthIndex = (result.getMonth() + months) % 12;
-  result.setMonth(result.getMonth() + months);
-
-  if (result.getMonth() !== targetMonthIndex) {
-    result.setDate(0);
-  }
-
-  const yyyy = result.getFullYear();
-  const mm = String(result.getMonth() + 1).padStart(2, '0');
-  const dd = String(result.getDate()).padStart(2, '0');
-
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-type NewPayment = typeof payments.$inferInsert
-async function generatePayments(startDate: string, frequency: Frequency, basePrice: number|string, membershipId: string) {
-  const db = getDb();
-  const monthsToAdd = FREQUENCY_MONTHS[frequency];
-
-  const paymentValues: NewPayment[] = [];
-
-  for (let index = 0; index < monthsToAdd; index++) {
-    paymentValues.push({
-      amount: String(basePrice),
-      status: 'pending', 
-      dueDate: addMonthsToDate(startDate, index),
-      membershipId: membershipId,
-    });
-  }
-
-  await db.transaction(async (tx) => {
-    await tx.insert(payments).values(paymentValues);
-  });
-}
-
-export async function subscribeToPlanAction({
-  planId,
-  userId,
-}: {
+export async function subscribeToPlanAction(input: {
   planId: string;
-  userId: string;
-}) {
+}): Promise<SubscribeToPlanResult> {
+  // The student identity comes from the session, never from the caller.
+  const session = await getSession().catch(() => null);
+  if (!session?.user?.id) {
+    return { success: false, error: 'You must be signed in to subscribe to a plan.' };
+  }
+
+  const parsed = subscribeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: 'Invalid plan.' };
+  }
+
   try {
     const db = getDb();
-    const [curr_plan] = await db.select().from(plans).where(eq(plans.id, planId));
-    if (!curr_plan) {
+
+    const [student] = await db
+      .select({ id: students.id, status: students.status })
+      .from(students)
+      .where(eq(students.userId, session.user.id))
+      .limit(1);
+
+    if (!student) {
+      return { success: false, error: 'Only students can subscribe to a plan.' };
+    }
+
+    if (student.status !== 'active') {
+      return { success: false, error: 'Your student account is not active.' };
+    }
+
+    const [plan] = await db
+      .select()
+      .from(plans)
+      .where(eq(plans.id, parsed.data.planId))
+      .limit(1);
+
+    if (!plan) {
       return { success: false, error: 'Plan not found.' };
     }
 
-    console.log(userId)
-    const [curr_student] = await db
-      .select()
-      .from(students)
-      .where(eq(students.userId, userId))
+    // One live membership per student. The partial unique index in the schema
+    // enforces this too; this check provides a friendly error in the normal case.
+    const [liveMembership] = await db
+      .select({ id: memberships.id })
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.studentId, student.id),
+          inArray(memberships.status, ['pending', 'active']),
+        ),
+      )
       .limit(1);
 
-    if (!curr_student) {
-      return { success: false, error: 'Student record not found for this user.' };
+    if (liveMembership) {
+      return { success: false, error: DUPLICATE_MEMBERSHIP };
     }
 
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const startDate = `${yyyy}-${mm}-${dd}`;
+    const startDate = todayIsoDate();
+    const endDate = addFrequencyToDate(startDate, plan.billingCycle);
+    const installmentCount = FREQUENCY_MONTHS[plan.billingCycle];
 
-    const endDate = addFrequencyToDate(startDate, curr_plan.billingCycle);
+    // Membership and its payment schedule are created atomically: a failure
+    // while creating payments must not leave a membership without invoices.
+    await db.transaction(async (tx) => {
+      const [membership] = await tx
+        .insert(memberships)
+        .values({
+          studentId: student.id,
+          planId: plan.id,
+          startDate,
+          endDate,
+          appliedDiscount: '0.00',
+          status: 'pending',
+        })
+        .returning({ id: memberships.id });
 
-    const [membership]= await db.insert(memberships).values({
-      studentId: curr_student.id,
-      planId: planId,
-      startDate: startDate,
-      endDate: endDate,
-      appliedDiscount: '0.00',
-      status: 'pending',
-    }).returning();
+      const paymentValues: NewPayment[] = Array.from(
+        { length: installmentCount },
+        (_, index) => ({
+          amount: String(plan.basePrice),
+          status: 'pending',
+          dueDate: addMonthsToDate(startDate, index),
+          membershipId: membership.id,
+        }),
+      );
 
-    await generatePayments(startDate, curr_plan.billingCycle, curr_plan.basePrice, membership.id);
+      await tx.insert(payments).values(paymentValues);
+    });
 
     revalidatePath('/');
+    revalidatePath('/plans');
+    revalidatePath('/account');
 
     return { success: true };
-  } catch (error: any) {
-    // Log actual error details to your terminal output for easy debugging
-    console.error('Subscription insertion error:', error?.detail || error?.message || error);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return { success: false, error: DUPLICATE_MEMBERSHIP };
+    }
 
+    console.error('Failed to create membership.');
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Database insertion failed.',
+      error: 'Could not create your membership. Please try again.',
     };
   }
 }

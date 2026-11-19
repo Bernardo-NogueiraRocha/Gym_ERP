@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
-import { checkEmailAndReset } from '@/app/actions/forgot-password/actions';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -17,14 +16,6 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setMessage('');
 
-    const check = await checkEmailAndReset(email);
-
-    if (!check.success) {
-      setMessage(check.message);
-      setLoading(false);
-      return;
-    }
-
     const { error } = await authClient.requestPasswordReset({
       email,
       redirectTo: `${window.location.origin}/reset-password`,
@@ -33,7 +24,8 @@ export default function ForgotPasswordPage() {
     if (error) {
       setMessage(error.message ?? 'Something went wrong.');
     } else {
-      setMessage('A password reset link has been sent to your email.');
+      // Generic on purpose: never reveal whether an email is registered.
+      setMessage('If an account exists for that email, a password reset link has been sent.');
     }
 
     setLoading(false);

@@ -53,7 +53,7 @@ according to user roles.
    npm install
    ```
 
-2. Create `.env.local` in the project root. Configure `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, and `RESEND_API_KEY` as needed. Keep real credentials private; do not commit `.env.local`.
+2. Create `.env.local` in the project root. Copy `.env.example` and fill in `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `RESEND_API_KEY`, and `EMAIL_FROM`. Keep real credentials private; do not commit `.env.local`.
 
 3. Start PostgreSQL:
 
@@ -92,7 +92,9 @@ This starts PostgreSQL and the containerized application on port 3000. To stop t
 | `npm run db:push` | Push the Drizzle schema to the configured database |
 | `npm run db:generate` | Generate Drizzle migration files |
 | `npm run db:studio` | Open Drizzle Studio |
-| `npm run db:seed` | Seed the database with development data |
+| `npm run db:init` | Insert missing reference data (non-destructive; safe in production) |
+| `npm run db:seed` | **Destructive** development seed; requires `ALLOW_DESTRUCTIVE_SEED=1` and refuses to run in production |
+| `npm test` | Run unit tests for date helpers and validation schemas |
 
 ## Roles
 
@@ -115,6 +117,7 @@ This starts PostgreSQL and the containerized application on port 3000. To stop t
 
 - [TODO.md](TODO.md) — current backlog and project priorities
 - [CHANGELOG.md](CHANGELOG.md) — notable project changes
+- [`docs/deployment.md`](docs/deployment.md) — environment variables, database, email, and release checklist
 - [`docs/`](docs/) — product, database, and system design notes
 
 ## License

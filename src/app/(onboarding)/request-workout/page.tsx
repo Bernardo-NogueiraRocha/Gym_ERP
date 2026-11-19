@@ -1,12 +1,10 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { getStudentData } from "@/lib/queries/students";
+import { getSession } from "@/lib/auth-server";
 import { AccessDenied } from "@/components/access-denied";
-import { FormEvent } from "react";
 import { WorkoutRequestForm } from "@/components/request-workout/request-workout-form";
 
 export default async function RequestWorkoutPage() {
-    const session = await auth.api.getSession({headers: await headers()});
+    const session = await getSession();
 
     if (!session) {
         return (
@@ -16,18 +14,11 @@ export default async function RequestWorkoutPage() {
 
     const studentData = await getStudentData(session.user.id);
 
-    if (studentData == null) {
+    if (!studentData) {
         return (
-            <div>
-
-            </div>
-        )
+            <AccessDenied message="Only students can request a workout." />
+        );
     }
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) =>{
-        e.preventDefault()
 
-    }
-    return (
-        <WorkoutRequestForm studentId={studentData.studentId}/>
-    )
+    return <WorkoutRequestForm />;
 }

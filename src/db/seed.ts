@@ -1,7 +1,39 @@
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.local' });
+
 import { hashPassword } from 'better-auth/crypto';
 
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
+import {
+    exerciseData,
+    featureData,
+    muscleData,
+    planData,
+    planFeatureRules,
+} from './reference-data';
+
+const DEFAULT_DEV_PASSWORD = 'Password123!';
+
+/**
+ * This script DELETES every row before inserting fixtures. It must never run
+ * against a production database: for production reference data use
+ * `npm run db:init`, which is non-destructive.
+ */
+function assertDestructiveSeedIsAllowed() {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error(
+            'Refusing to run the destructive development seed with NODE_ENV=production. Use `npm run db:init` instead.',
+        );
+    }
+
+    if (process.env.ALLOW_DESTRUCTIVE_SEED !== '1') {
+        throw new Error(
+            'Refusing to run the destructive development seed. Set ALLOW_DESTRUCTIVE_SEED=1 to confirm that all data will be deleted.',
+        );
+    }
+}
 
 function isoFrom(days: number, months = 0): string {
     const d = new Date();
@@ -18,6 +50,8 @@ function daysAgo(days: number): Date {
 
 async function main() {
     try {
+        assertDestructiveSeedIsAllowed();
+
         const db = getDb();
 
         // 1. Clean existing records in reverse dependency order
@@ -45,7 +79,8 @@ async function main() {
         await db.delete(schema.user);
 
         // 2. Create Password Hash for Test Accounts
-        const defaultPassword = 'Password123!';
+        const defaultPassword =
+            process.env.SEED_DEFAULT_PASSWORD ?? DEFAULT_DEV_PASSWORD;
 
         const hashedPassword = await hashPassword(defaultPassword);
 
@@ -154,95 +189,37 @@ async function main() {
         );
 
         // 5. Seed Core Domain Data
-        const insertedMuscles = await db.insert(schema.muscles).values([
-            { name: 'Chest', slug: 'chest', bodyGroup: 'Upper Body' },
-            { name: 'Triceps', slug: 'triceps', bodyGroup: 'Upper Body' },
-            { name: 'Deltoids', slug: 'deltoids', bodyGroup: 'Upper Body' },
-            { name: 'Quadriceps', slug: 'quadriceps', bodyGroup: 'Lower Body' },
-            { name: 'Gluteal', slug: 'gluteal', bodyGroup: 'Lower Body' },
-            { name: 'Hamstring', slug: 'hamstring', bodyGroup: 'Lower Body' },
-            { name: 'Upper Back', slug: 'upper-back', bodyGroup: 'Upper Body' },
-            { name: 'Lower Back', slug: 'lower-back', bodyGroup: 'Core' },
-            { name: 'Biceps', slug: 'biceps', bodyGroup: 'Upper Body' },
-            { name: 'Forearm', slug: 'forearm', bodyGroup: 'Upper Body' },
-            { name: 'Abs', slug: 'abs', bodyGroup: 'Core' },
-        ]).returning();
+        const insertedMuscles = await db
+            .insert(schema.muscles)
+            .values(muscleData)
+            .returning();
 
         // Create a lookup map for muscle slugs -> IDs
         const muscleMap = Object.fromEntries(insertedMuscles.map(m => [m.slug, m.id]));
 
-        // 2. Seed Exercises (including original list + new additions)
-        const insertedExercises = await db.insert(schema.exercises).values([
-            { name: 'Bench Press' },
-            { name: 'Back Squat' },
-            { name: 'Deadlift' },
-            { name: 'Lat Pulldown' },
-            { name: 'Leg Press' },
-            { name: 'Shoulder Press' },
-            { name: 'Biceps Curl' },
-            { name: 'Plank' },
-            { name: 'Pull-Up' },
-            { name: 'Romanian Deadlift' },
-        ]).returning();
+        // 2. Seed Exercises (catalog from reference-data)
+        const insertedExercises = await db
+            .insert(schema.exercises)
+            .values(exerciseData.map(({ name }) => ({ name })))
+            .returning();
 
         // Create a lookup map for exercise names -> IDs
         const exerciseMap = Object.fromEntries(insertedExercises.map(e => [e.name, e.id]));
 
         // 3. Seed Junction Table (Exercise-Muscles with stimulus strengths)
-        await db.insert(schema.exerciseMuscles).values([
-            // Bench Press
-            { exerciseId: exerciseMap['Bench Press'], muscleId: muscleMap['chest'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Bench Press'], muscleId: muscleMap['triceps'], stimulusStrength: 0.6 },
-            { exerciseId: exerciseMap['Bench Press'], muscleId: muscleMap['deltoids'], stimulusStrength: 0.7 },
-
-            // Back Squat
-            { exerciseId: exerciseMap['Back Squat'], muscleId: muscleMap['quadriceps'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Back Squat'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.8 },
-            { exerciseId: exerciseMap['Back Squat'], muscleId: muscleMap['abs'], stimulusStrength: 0.4 },
-
-            // Deadlift
-            { exerciseId: exerciseMap['Deadlift'], muscleId: muscleMap['hamstring'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Deadlift'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.9 },
-            { exerciseId: exerciseMap['Deadlift'], muscleId: muscleMap['lower-back'], stimulusStrength: 0.8 },
-
-            // Lat Pulldown
-            { exerciseId: exerciseMap['Lat Pulldown'], muscleId: muscleMap['upper-back'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Lat Pulldown'], muscleId: muscleMap['biceps'], stimulusStrength: 0.7 },
-
-            // Leg Press
-            { exerciseId: exerciseMap['Leg Press'], muscleId: muscleMap['quadriceps'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Leg Press'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.6 },
-
-            // Shoulder Press
-            { exerciseId: exerciseMap['Shoulder Press'], muscleId: muscleMap['deltoids'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Shoulder Press'], muscleId: muscleMap['triceps'], stimulusStrength: 0.6 },
-
-            // Biceps Curl
-            { exerciseId: exerciseMap['Biceps Curl'], muscleId: muscleMap['biceps'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Biceps Curl'], muscleId: muscleMap['forearm'], stimulusStrength: 0.4 },
-
-            // Plank
-            { exerciseId: exerciseMap['Plank'], muscleId: muscleMap['abs'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Plank'], muscleId: muscleMap['lower-back'], stimulusStrength: 0.5 },
-
-            // Pull-Up
-            { exerciseId: exerciseMap['Pull-Up'], muscleId: muscleMap['upper-back'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Pull-Up'], muscleId: muscleMap['biceps'], stimulusStrength: 0.8 },
-
-            // Romanian Deadlift
-            { exerciseId: exerciseMap['Romanian Deadlift'], muscleId: muscleMap['hamstring'], stimulusStrength: 1.0 },
-            { exerciseId: exerciseMap['Romanian Deadlift'], muscleId: muscleMap['gluteal'], stimulusStrength: 0.7 },
-            { exerciseId: exerciseMap['Romanian Deadlift'], muscleId: muscleMap['lower-back'], stimulusStrength: 0.6 },
-        ]);
+        await db.insert(schema.exerciseMuscles).values(
+            exerciseData.flatMap((exercise) =>
+                exercise.muscles.map((muscle) => ({
+                    exerciseId: exerciseMap[exercise.name],
+                    muscleId: muscleMap[muscle.slug],
+                    stimulusStrength: muscle.stimulusStrength,
+                }))
+            )
+        );
 
         const planRows = await db
             .insert(schema.plans)
-            .values([
-                { name: 'Plano Mensal', billingCycle: 'mensal', basePrice: '130.00' },
-                { name: 'Plano Trimestral', billingCycle: 'quarterly', basePrice: '120.00' },
-                { name: 'Plano Semestral', billingCycle: 'semiannual', basePrice: '110.00' },
-                { name: 'Plano Anual', billingCycle: 'annual', basePrice: '100.00' },
-            ])
+            .values(planData)
             .returning();
 
         const planByCycle = planRows.reduce<Record<string, (typeof planRows)[number]>>((acc, p) => {
@@ -250,20 +227,23 @@ async function main() {
             return acc;
         }, {});
 
-        const featureRows = await db.insert(schema.features).values([
-            { name: 'Acesso livre à musculação', description: 'Acesso à área de musculação durante o horário de funcionamento.' },
-            { name: 'Aulas em grupo', description: 'Participação nas aulas coletivas da academia.' },
-            { name: 'Avaliação física', description: 'Avaliação física periódica com um profissional.' },
-            { name: 'Personal trainer', description: 'Sessões individuais com um personal trainer.' },
-        ]).returning();
+        const featureRows = await db.insert(schema.features).values(featureData).returning();
 
         const featureByName = Object.fromEntries(featureRows.map((feature) => [feature.name, feature]));
-        await db.insert(schema.planFeatures).values([
-            ...planRows.map((plan) => ({ planId: plan.id, featureId: featureByName['Acesso livre à musculação'].id, included: true })),
-            ...planRows.map((plan) => ({ planId: plan.id, featureId: featureByName['Aulas em grupo'].id, included: plan.billingCycle !== 'mensal' })),
-            ...planRows.map((plan) => ({ planId: plan.id, featureId: featureByName['Avaliação física'].id, included: plan.billingCycle === 'semiannual' || plan.billingCycle === 'annual' })),
-            { planId: planByCycle.annual.id, featureId: featureByName['Personal trainer'].id, included: true },
-        ]);
+
+        await db.insert(schema.planFeatures).values(
+            planFeatureRules.flatMap((rule) => {
+                const plan = planByCycle[rule.planCycle];
+                const feature = featureByName[rule.featureName];
+                if (!plan || !feature) return [];
+
+                return [{
+                    planId: plan.id,
+                    featureId: feature.id,
+                    included: rule.included,
+                }];
+            })
+        );
 
         const classRows = await db
             .insert(schema.classes)
@@ -390,12 +370,16 @@ async function main() {
             { category: 'monthly', description: 'Energia elétrica e água', amount: '890.00', dueDate: isoFrom(8), type: 'fixed' },
         ]);
 
-        console.log('Database seeded successfully with Better Auth users!');
-        console.log('Credentials for all accounts:');
-        console.log('Email: admin@gym.com, thiago.oliveira@gmail.com, lucas.mendes@gym.com, etc.');
-        console.log('Password: Password123!');
+        console.log('Development database seeded successfully.');
+        console.log('Test accounts: admin@gym.com, lucas.mendes@gym.com, thiago.oliveira@gmail.com, ...');
+        console.log(
+            `Password: ${process.env.SEED_DEFAULT_PASSWORD ? 'from SEED_DEFAULT_PASSWORD' : 'development default (set SEED_DEFAULT_PASSWORD to override)'}`,
+        );
     } catch (error) {
-        console.error('Seeding failed, error:', error);
+        console.error(
+            'Seeding failed:',
+            error instanceof Error ? error.message : error,
+        );
         process.exitCode = 1;
     } finally {
         process.exit();

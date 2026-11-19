@@ -11,7 +11,6 @@ export default async function CheckoutPage({params,}: {params: Promise<{ planId:
     headers: await headers(),
   });
 
-  console.log(session)
   // Protect route: Redirect to sign-in if unauthenticated
   if (!session?.user) {
     redirect('/sign-in');
@@ -19,7 +18,7 @@ export default async function CheckoutPage({params,}: {params: Promise<{ planId:
 
   return (
     <div className="container mx-auto py-10">
-      <CheckoutForm planId={planId} userId={session.user.id} />
+      <CheckoutForm planId={planId} />
     </div>
   );
 }

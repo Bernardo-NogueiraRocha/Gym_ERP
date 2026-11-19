@@ -4,6 +4,34 @@ Notable changes to Gym ERP are documented here. This file follows [Keep a Change
 
 ## [Unreleased]
 
+### Security
+
+- Removed debug logging that exposed passwords, session tokens, and personal data.
+- Removed the unauthenticated `/api/students` endpoint.
+- Server actions now derive student identity from the session instead of trusting client-supplied IDs.
+- Registration failures roll back the auth user so no orphaned accounts remain.
+- Added a partial unique index enforcing one live membership per student.
+- Professionals can only prescribe workouts for students assigned to them.
+
+### Fixed
+
+- Blank optional phone numbers no longer block registration; field-level errors are shown on the sign-up form.
+- Password reset emails use `EMAIL_FROM`, surface Resend failures, and escape user names.
+- Checkout creates the membership and its payments in a single transaction and rejects duplicates.
+- Workout requests validate input, require injury details when injuries are reported, and reject duplicate open requests.
+- Billing date math is timezone-safe and clamps month-end dates correctly.
+
+### Added
+
+- Server environment validation (`src/lib/env.ts`) and a committed `.env.example`.
+- Non-destructive `db:init` for production reference data, plus a destructive-seed guard.
+- Deployment documentation in `docs/deployment.md`.
+- Unit tests for date helpers and validation schemas (`npm test`).
+
+### Changed
+
+- `npm run db:seed` now requires `ALLOW_DESTRUCTIVE_SEED=1` and refuses to run with `NODE_ENV=production`.
+
 ## [0.1.12] - 2026-11-17
 
 ### Added

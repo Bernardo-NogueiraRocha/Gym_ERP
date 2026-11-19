@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { workouts, workoutItems, exercises, students, user, exerciseMuscles, muscles, workoutSessions, workoutSessionSets } from "@/db/schema";
+import { workouts, workoutItems, exercises, students, user, exerciseMuscles, muscles, workoutSessions, workoutSessionSets, professionalStudents } from "@/db/schema";
 import { and, gte, lte, eq, or, isNull, asc } from "drizzle-orm";
 
 export async function getStudentData(userId: string) {
@@ -21,6 +21,18 @@ export async function getStudentList() {
         .from(students)
         .innerJoin(user, eq(students.userId,user.id))
     return usersData ?? null;
+}
+
+export async function getAssignedStudentList(professionalId: string) {
+    return getDb()
+        .select({
+            name: user.name,
+            student_id: students.id,
+        })
+        .from(professionalStudents)
+        .innerJoin(students, eq(students.id, professionalStudents.studentId))
+        .innerJoin(user, eq(students.userId, user.id))
+        .where(eq(professionalStudents.professionalId, professionalId));
 }
 
 export async function getCurrentWorkoutsWithItems(studentId: string) {

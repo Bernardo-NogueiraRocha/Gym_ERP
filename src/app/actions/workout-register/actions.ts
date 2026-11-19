@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from "@/db";
-import { exercises, professionals, students, workoutItems, workouts } from "@/db/schema";
+import { exercises, professionalStudents, professionals, students, workoutItems, workouts } from "@/db/schema";
 import { getSession } from "@/lib/auth-server";
 import { and, eq, inArray } from "drizzle-orm";
 
@@ -45,6 +45,18 @@ export async function createWorkoutAction(input: CreateWorkoutInput) {
     const [student] = await db.select({ id: students.id }).from(students)
         .where(eq(students.id, input.studentId)).limit(1);
     if (!student) throw new Error("The selected student was not found.");
+
+    // Professionals may only prescribe for students assigned to them.
+    const [assignment] = await db
+        .select({ studentId: professionalStudents.studentId })
+        .from(professionalStudents)
+        .where(and(
+            eq(professionalStudents.professionalId, professional.id),
+            eq(professionalStudents.studentId, input.studentId),
+        ))
+        .limit(1);
+
+    if (!assignment) throw new Error("This student is not assigned to you.");
 
     const exerciseIds = [...new Set(input.items.map((item) => item.exerciseId))];
 

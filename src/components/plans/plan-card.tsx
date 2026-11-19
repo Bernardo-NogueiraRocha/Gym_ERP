@@ -17,6 +17,7 @@ export function PlanCard({
             <PlanButton
                 planId={plan.id}
                 isCurrentPlan={isCurrentPlan}
+                hasLiveMembership={membershipPlanId !== null}
             />
             <div className="mt-6 border-t pt-5 text-left">
                 <h3 className="text-sm font-semibold">Included features</h3>
