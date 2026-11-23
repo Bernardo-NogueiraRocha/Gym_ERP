@@ -1,5 +1,5 @@
 import { 
-  pgTable, uuid, text, varchar} from 'drizzle-orm/pg-core';
+  pgTable, uuid, varchar} from 'drizzle-orm/pg-core';
 
 export const exercises = pgTable('exercises', {
   id: uuid('id').defaultRandom().primaryKey(),

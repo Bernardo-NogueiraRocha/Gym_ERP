@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
+import { Button } from '@/components/ui/button';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -34,10 +35,10 @@ export default function ForgotPasswordPage() {
   return (
     <div>
       <div>
-        <h1 className='text-slate-100 text-xl font-semibold'>
+        <h1 className='text-xl font-semibold text-foreground'>
           Forgot your password?
         </h1>
-        <p className='mb-5 text-slate-400 text-xs'>
+        <p className='mb-5 text-xs text-muted-foreground'>
           Please enter your email, and we will send you a password reset link.
         </p>
       </div>
@@ -49,18 +50,19 @@ export default function ForgotPasswordPage() {
           onChange={(event) => setEmail(event.target.value)}
           placeholder="Email"
           required
-          className="w-full p-2 rounded-md bg-slate-800 text-slate-100 border border-slate-700 text-sm"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
         />
 
-        <button
+        <Button
           type="submit"
+          size="lg"
+          className="mt-2 w-full"
           disabled={loading}
-          className='w-full hover:bg-blue-500 bg-blue-400 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2'
         >
           {loading ? 'Checking...' : 'Send reset link'}
-        </button>
+        </Button>
 
-        {message && <p className="text-xs text-slate-300 mt-2">{message}</p>}
+        {message && <p className="mt-2 text-xs text-foreground">{message}</p>}
       </form>
     </div>
   );

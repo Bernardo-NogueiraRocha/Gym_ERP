@@ -23,6 +23,9 @@ Notable changes to Gym ERP are documented here. This file follows [Keep a Change
 
 ### Added
 
+- Google sign-up and login, including a complete-registration step for student or professional profiles.
+- Admin approval queue for professional registrations at `/verify-professionals`.
+- Explicit **Link Google** flow for existing password accounts.
 - Server environment validation (`src/lib/env.ts`) and a committed `.env.example`.
 - Non-destructive `db:init` for production reference data, plus a destructive-seed guard.
 - Deployment documentation in `docs/deployment.md`.

@@ -68,14 +68,14 @@ export function isValidPhone(phone: string): boolean {
 }
 
 
-const cpfSchema = z
+export const cpfSchema = z
   .string()
   .transform((value) => value.replace(/\D/g, ""))
   .refine(isValidCPF, {
     message: "Invalid CPF",
   });
 
-const phoneSchema = z
+export const phoneSchema = z
   .string()
   .transform((value) => value.replace(/\D/g, ""))
   .refine((value) => /^\d{11}$/.test(value), {
@@ -84,7 +84,7 @@ const phoneSchema = z
 
 // The sign-up form always submits a string, using "" for an untouched field.
 // Treat that as "not provided" instead of failing the optional phone rule.
-const optionalPhoneSchema = z.preprocess(
+export const optionalPhoneSchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   phoneSchema.optional(),
 );

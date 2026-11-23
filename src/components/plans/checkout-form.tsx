@@ -36,14 +36,14 @@ export function CheckoutForm({ planId }: CheckoutFormProps) {
         Can you confirm that is the plan you want to subscribe to?
       </h3>
 
-      <p className="max-w-prose text-sm text-slate-400">
+      <p className="max-w-prose text-sm text-muted-foreground">
         Your membership will be created as <strong>pending payment</strong>.
         It becomes active once the first payment is confirmed, so it will not
         grant access immediately.
       </p>
 
       {errorMessage && (
-        <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {errorMessage}
         </div>
       )}

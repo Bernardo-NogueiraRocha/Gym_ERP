@@ -33,11 +33,22 @@ const emailEnvSchema = z.object({
     .default('onboarding@resend.dev'),
 });
 
+const googleEnvSchema = z.object({
+  GOOGLE_CLIENT_ID: z
+    .string()
+    .min(1, 'GOOGLE_CLIENT_ID is required for sign-up and login with Google'),
+  GOOGLE_CLIENT_SECRET: z
+    .string()
+    .min(1, 'GOOGLE_CLIENT_SECRET is required for sign-up and login with Google'),
+});
+
 export type ServerEnv = z.infer<typeof coreEnvSchema>;
 export type EmailEnv = z.infer<typeof emailEnvSchema>;
+export type GoogleEnv = z.infer<typeof googleEnvSchema>;
 
 let cachedCore: ServerEnv | null = null;
 let cachedEmail: EmailEnv | null = null;
+let cachedGoogle: GoogleEnv | null = null;
 
 function formatIssues(error: z.ZodError) {
   return error.issues
@@ -71,4 +82,29 @@ export function getEmailEnv(): EmailEnv {
 
   cachedEmail = parsed.data;
   return cachedEmail;
+}
+
+export function getOptionalGoogleEnv(): GoogleEnv | null {
+  if (cachedGoogle) return cachedGoogle;
+
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+
+  if (!clientId && !clientSecret) {
+    return null;
+  }
+
+  const parsed = googleEnvSchema.safeParse({
+    GOOGLE_CLIENT_ID: clientId,
+    GOOGLE_CLIENT_SECRET: clientSecret,
+  });
+
+  if (!parsed.success) {
+    throw new Error(
+      `Invalid Google environment configuration. ${formatIssues(parsed.error)}`,
+    );
+  }
+
+  cachedGoogle = parsed.data;
+  return cachedGoogle;
 }

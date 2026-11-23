@@ -21,12 +21,12 @@ function formatDate(dateInput: string | Date | null | undefined): string {
 function getStatusColor(status: string) {
     switch (status) {
         case 'completed':
-            return 'text-green-600';
+            return 'text-success';
         case 'pending':
         case 'overdue':
-            return 'text-red-600';
+            return 'text-destructive';
         default:
-            return 'text-slate-400';
+            return 'text-muted-foreground';
     }
 }
 
@@ -38,9 +38,9 @@ export async function MembershipInfo({ userId }: { userId: string }) {
 
     if (!membership) {
         return (
-            <section className="mx-10 mt-5 rounded-xl border border-slate-800 bg-background p-6 text-slate-300">
-                <h2 className="text-xl font-semibold text-white">Membership</h2>
-                <p className="mt-2">You do not have a membership yet.</p>
+            <section className="mx-10 mt-5 rounded-xl border border-border bg-card p-6 text-card-foreground">
+                <h2 className="text-xl font-semibold text-foreground">Membership</h2>
+                <p className="mt-2 text-muted-foreground">You do not have a membership yet.</p>
             </section>
         );
     }
@@ -48,7 +48,7 @@ export async function MembershipInfo({ userId }: { userId: string }) {
     const plan = await getPlanById(membership.planId);
 
     return (
-        <section className="mx-10 mt-5 rounded-xl border border-slate-800 bg-background p-6 text-slate-300 shadow-lg">
+        <section className="mx-10 mt-5 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-semibold text-foreground">Membership</h2>
@@ -59,12 +59,12 @@ export async function MembershipInfo({ userId }: { userId: string }) {
                         </p>
                     )}
                 </div>
-                <span className="rounded-full bg-slate-800 px-3 py-1 text-sm capitalize text-slate-200">
+                <span className="rounded-full bg-muted px-3 py-1 text-sm capitalize text-foreground">
                     {membership.status}
                 </span>
             </div>
 
-            <dl className="mt-5 grid gap-4 border-t border-slate-800 pt-4 sm:grid-cols-2">
+            <dl className="mt-5 grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
                 <div>
                     <dt className="text-sm text-muted-foreground">Start date</dt>
                     <dd className="mt-1 text-foreground">{formatDate(membership.startDate)}</dd>
@@ -76,15 +76,15 @@ export async function MembershipInfo({ userId }: { userId: string }) {
             </dl>
 
             {membership.status === 'pending' && (
-                <p className="mt-4 rounded-lg border border-amber-700/60 bg-amber-950/40 p-3 text-sm text-amber-200">
+                <p className="mt-4 rounded-lg border border-warning/50 bg-warning/10 p-3 text-sm text-foreground">
                     Pending payment. This membership does not grant access until the first payment is confirmed.
                 </p>
             )}
 
-            <div className="mt-6 border-t border-slate-800 pt-4">
+            <div className="mt-6 border-t border-border pt-4">
                 <h3 className="font-semibold text-foreground">Membership payments</h3>
                 {payments.length === 0 ? (
-                    <p className="mt-2 text-sm text-slate-400">No payments have been recorded.</p>
+                    <p className="mt-2 text-sm text-muted-foreground">No payments have been recorded.</p>
                 ) : (
                     <div className="mt-3 overflow-x-auto">
                         <table className="w-full min-w-120 text-left text-sm">
@@ -98,7 +98,7 @@ export async function MembershipInfo({ userId }: { userId: string }) {
                             </thead>
                             <tbody>
                                 {payments.map((payment) => (
-                                    <tr key={payment.id} className="border-t border-slate-800 text-muted-foreground">
+                                    <tr key={payment.id} className="border-t border-border text-muted-foreground">
                                         <td className="py-3 pr-4">{formatDate(payment.dueDate)}</td>
                                         <td className="py-3 pr-4">{payment.paymentDate ?? '—'}</td>
                                         <td className="py-3 pr-4">{payment.amount}</td>

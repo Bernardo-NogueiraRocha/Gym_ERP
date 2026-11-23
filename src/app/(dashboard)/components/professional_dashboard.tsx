@@ -10,6 +10,7 @@ async function getProfessionalData(userId: string) {
             name: user.name,
             email: user.email,
             professionalId: professionals.id,
+            approved: professionals.approved,
         })
         .from(professionals)
         .innerJoin(user, eq(user.id, professionals.userId))
@@ -35,23 +36,23 @@ async function getAssignedStudents(professionalId: string) {
 function StudentList({ students }: { students: Awaited<ReturnType<typeof getAssignedStudents>> }) {
     if (students.length === 0) {
         return (
-            <div className="rounded-md bg-zinc-900 p-4 text-sm text-zinc-400">
+            <div className="rounded-md border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
                 No students have been assigned to you yet.
             </div>
         );
     }
 
     return (
-        <ul className="divide-y divide-zinc-800 rounded-md border border-zinc-800">
+        <ul className="divide-y divide-border rounded-md border border-border bg-card">
             {students.map((student, index) => (
                 <li
                     key={student.studentId}
-                    className="flex items-center justify-between p-3 text-sm text-zinc-200"
+                    className="flex items-center justify-between p-3 text-sm text-foreground"
                 >
                     <span className="font-medium">
                         {index + 1}. {student.name}
                     </span>
-                    <span className="text-xs text-zinc-500">{student.email}</span>
+                    <span className="text-xs text-muted-foreground">{student.email}</span>
                 </li>
             ))}
         </ul>
@@ -63,8 +64,22 @@ export async function ProfessionalDashboard({ userId }: { userId: string }) {
 
     if (!professionalData) {
         return (
-            <div className="p-6 text-red-400">
+            <div className="p-6 text-destructive">
                 Professional profile not found.
+            </div>
+        );
+    }
+
+    if (!professionalData.approved) {
+        return (
+            <div className="mx-auto mt-10 max-w-md rounded-xl border border-warning/50 bg-warning/10 p-8 text-center">
+                <h2 className="text-lg font-semibold text-foreground">
+                    Registration awaiting approval
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    An administrator must review your professional registration
+                    before you can access student workouts.
+                </p>
             </div>
         );
     }
@@ -77,20 +92,20 @@ export async function ProfessionalDashboard({ userId }: { userId: string }) {
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">
                     Hello Professional {professionalData.name}!
                 </h1>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-muted-foreground">
                     Here is your active student roster.
                 </p>
             </header>
 
             <section className="space-y-3">
-                <h2 className="text-lg font-semibold text-zinc-100">
+                <h2 className="text-lg font-semibold text-foreground">
                     Estudantes ({assignedStudents.length})
                 </h2>
 
                 <StudentList students={assignedStudents} />
             </section>
             <section>
-                <h1 className="text-lg font-semibold">Would You like to register a workout?</h1>
+                <h2 className="text-lg font-semibold text-foreground">Would You like to register a workout?</h2>
                 <Link href='/register-workout'>
                     <Button>Register Workout</Button>
                 </Link>

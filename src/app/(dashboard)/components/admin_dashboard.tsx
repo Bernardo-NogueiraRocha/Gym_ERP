@@ -44,14 +44,14 @@ export function ActionButtons() {
         <div className="grid grid-cols-2 gap-2">
             {/* First Button */}
             <Link href="/sign-up">
-                <Button variant="link" className="text-white">
+                <Button variant="link">
                     Register Student
                 </Button>
             </Link>
 
             {/* Second Button */}
-            <Link href="/sign-in">
-                <Button variant="link" className="text-white">
+            <Link href="/sign-up">
+                <Button variant="link">
                     Register Professional
                 </Button>
             </Link>
@@ -80,9 +80,12 @@ export async function AdminDashboard({ userId }: { userId: string }) {
                 </CardContent>
             </Card>
             <h1>Hello, User ID: {userData.name}</h1>
-            <div className="my-4">
+            <div className="my-4 flex flex-wrap gap-3">
                 <Link href="/register-features">
                     <Button variant="outline">Manage Plan Features</Button>
+                </Link>
+                <Link href="/verify-professionals">
+                    <Button variant="outline">Verify Professionals</Button>
                 </Link>
             </div>
             <p>Total number of students: {totalStudents}</p>

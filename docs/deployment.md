@@ -16,6 +16,8 @@ Preview) in the Vercel project settings.
 | `NEXT_PUBLIC_APP_URL` | Yes | Same origin, exposed to the browser. |
 | `RESEND_API_KEY` | Yes | Required for password reset emails; sign-in does not depend on it. |
 | `EMAIL_FROM` | Yes | Address on a domain verified in Resend, for example `Gym ERP <no-reply@example.com>`. `onboarding@resend.dev` only delivers to the Resend account owner. |
+| `GOOGLE_CLIENT_ID` | No | Google OAuth client ID. Required together with the secret to enable Google sign-up and login. |
+| `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret. Required together with the client ID. |
 | `SEED_DEFAULT_PASSWORD` | No | Password for development seed accounts. Never set it in production. |
 
 The application validates these lazily: a missing variable produces a clear
@@ -75,8 +77,8 @@ Resolve any rows before applying the index, otherwise `db:push` will fail.
    or a controlled migration job).
 4. Run `npm run db:init` once to create the plan/feature/exercise catalog.
 5. Deploy. Open the deployment URL and run the smoke tests below.
-6. Create the first administrator deliberately (see below); public sign-up only
-   creates students.
+6. Create the first administrator deliberately (see below); public sign-up creates
+   students and pending professional accounts, never administrators.
 
 ## Email (Resend)
 
@@ -86,10 +88,26 @@ Resolve any rows before applying the index, otherwise `db:push` will fail.
    application now surfaces Resend errors instead of reporting success, so a
    failed send appears as an error to the user.
 
+## Google OAuth
+
+1. Create an OAuth client in Google Cloud Console.
+2. Add the authorized redirect URI for each environment:
+   - Local: `http://localhost:3000/api/auth/callback/google`
+   - Production: `https://<your-domain>/api/auth/callback/google`
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` together. If both are
+   absent the Google buttons are hidden; if only one is set the application
+   reports a configuration error.
+4. New Google users are sent to `/complete-registration` to choose a student
+   or professional profile. Professional accounts remain pending until an
+   administrator approves them on `/verify-professionals`.
+5. Existing password accounts are not linked implicitly. Sign in with the
+   password first and use **Link Google** on the account page.
+
 ## Administrator accounts
 
-Public registration creates students only (`role` defaults to `student`). To
-create the first administrator, promote an existing account manually:
+Public registration creates students or professional accounts awaiting approval
+(`role` defaults to `student`). It never creates administrators. To create the
+first administrator, promote an existing account manually:
 
 ```sql
 update "user" set role = 'admin' where email = 'you@example.com';
@@ -101,6 +119,11 @@ Do not add self-service administrator registration.
 
 - [ ] Sign up with a blank phone number; the account is created and `phone` is `NULL`.
 - [ ] Sign up with an existing CPF; see a field error and no orphaned `user` row.
+- [ ] Sign up with Google as a student, complete the CPF step, and reach `/plans`.
+- [ ] Sign up with Google as a professional, confirm the pending state, and approve it as an admin.
+- [ ] Sign in with Google as an existing Google user; the dashboard loads without repeating onboarding.
+- [ ] Sign in with Google using an email registered with a password; see the linking message, then link Google from `/account`.
+- [ ] Cancel the Google consent screen; a friendly error appears instead of a raw provider message.
 - [ ] Sign in and out; the session cookie is set and cleared.
 - [ ] Request a password reset for a real mailbox; the email arrives.
 - [ ] Subscribe to a plan once; the membership is `pending` with one payment per installment.

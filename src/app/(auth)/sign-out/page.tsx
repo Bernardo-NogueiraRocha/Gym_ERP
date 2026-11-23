@@ -32,14 +32,14 @@ export default function SignOutPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-slate-100">Goodbye</h2>
-        <p className="text-xs text-slate-400 mt-1">
+        <h2 className="text-xl font-semibold text-foreground">Goodbye</h2>
+        <p className="text-xs text-muted-foreground mt-1">
           Do you really want to sign out?
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm p-3 rounded-md">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
@@ -47,8 +47,9 @@ export default function SignOutPage() {
       <form onSubmit={handleSignOut} className="space-y-4">
         <Button
           type="submit"
+          size="lg"
+          className="mt-2 w-full"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
         >
           {loading ? 'Signing out...' : 'Sign Out'}
         </Button>

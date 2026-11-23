@@ -2,10 +2,11 @@
 
 import { auth } from '@/lib/auth';
 import { getDb } from '@/db';
-import { students, user } from '@/db/schema';
+import { professionals, students, user } from '@/db/schema';
 import { headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 import { registerStudentSchema } from '@/schemas/student';
+import { completeRegistrationSchema, type RegistrationRole } from '@/schemas/registration';
 import {
     getErrorCode,
     getViolatedConstraint,
@@ -42,6 +43,147 @@ async function removeIncompleteUser(userId: string | null): Promise<boolean> {
             getErrorCode(cleanupError) ?? 'unknown error',
         );
         return false;
+    }
+}
+
+export type CompleteRegistrationResult =
+    | { success: true; role: RegistrationRole }
+    | { success: false; error?: string; errors?: FieldErrors };
+
+export async function completeRegistrationAction(
+    formData: FormData,
+): Promise<CompleteRegistrationResult> {
+    const parsed = completeRegistrationSchema.safeParse({
+        role: formData.get('role'),
+        cpf: formData.get('cpf') ?? '',
+        phone: formData.get('phone') ?? '',
+        cref: formData.get('cref') ?? '',
+        specialty: formData.get('specialty') ?? '',
+    });
+
+    if (!parsed.success) {
+        return { success: false, errors: parsed.error.flatten().fieldErrors };
+    }
+
+    let session;
+    try {
+        session = await auth.api.getSession({ headers: await headers() });
+    } catch {
+        return {
+            success: false,
+            error: 'We could not verify your session. Please sign in again.',
+        };
+    }
+
+    if (!session?.user?.id) {
+        return { success: false, error: 'You must be signed in to continue.' };
+    }
+
+    const userId = session.user.id;
+    const data = parsed.data;
+    const db = getDb();
+
+    try {
+        const [account] = await db
+            .select({ role: user.role })
+            .from(user)
+            .where(eq(user.id, userId))
+            .limit(1);
+
+        if (!account) {
+            return { success: false, error: 'Your account could not be found.' };
+        }
+
+        // Public registration must never grant administrator access.
+        if (account.role === 'admin') {
+            return {
+                success: false,
+                error: 'Administrator accounts cannot use public registration.',
+            };
+        }
+
+        const [existingStudent, existingProfessional] = await Promise.all([
+            db
+                .select({ id: students.id })
+                .from(students)
+                .where(eq(students.userId, userId))
+                .limit(1),
+            db
+                .select({ id: professionals.id })
+                .from(professionals)
+                .where(eq(professionals.userId, userId))
+                .limit(1),
+        ]);
+
+        // Keep the action idempotent: a retry or refresh must not create a second
+        // profile or change an already completed role.
+        if (existingStudent[0]) return { success: true, role: 'student' };
+        if (existingProfessional[0]) return { success: true, role: 'professional' };
+
+        if (data.role === 'student') {
+            const [cpfOwner] = await db
+                .select({ id: students.id })
+                .from(students)
+                .where(eq(students.cpf, data.cpf))
+                .limit(1);
+            if (cpfOwner) return { success: false, errors: CPF_TAKEN };
+
+            await db.transaction(async (tx) => {
+                if (account.role !== 'student') {
+                    await tx
+                        .update(user)
+                        .set({ role: 'student', updatedAt: new Date() })
+                        .where(eq(user.id, userId));
+                }
+
+                await tx.insert(students).values({
+                    userId,
+                    cpf: data.cpf,
+                    phone: data.phone ?? null,
+                    status: 'active',
+                });
+            });
+
+            return { success: true, role: 'student' };
+        }
+
+        await db.transaction(async (tx) => {
+            await tx
+                .update(user)
+                .set({ role: 'professional', updatedAt: new Date() })
+                .where(eq(user.id, userId));
+
+            await tx.insert(professionals).values({
+                userId,
+                cref: data.cref,
+                specialty: data.specialty,
+                approved: false,
+            });
+        });
+
+        return { success: true, role: 'professional' };
+    } catch (error) {
+        if (isUniqueViolation(error)) {
+            const constraint = getViolatedConstraint(error) ?? '';
+            if (constraint.includes('cpf')) {
+                return { success: false, errors: CPF_TAKEN };
+            }
+
+            return {
+                success: false,
+                error: 'Your registration was already completed. Please refresh the page.',
+            };
+        }
+
+        console.error(
+            'Failed to complete registration:',
+            getErrorCode(error) ?? 'unknown error',
+        );
+
+        return {
+            success: false,
+            error: 'We could not complete your registration. Please try again.',
+        };
     }
 }
 

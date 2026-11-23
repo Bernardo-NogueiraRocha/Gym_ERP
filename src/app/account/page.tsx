@@ -1,11 +1,16 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getUserData } from "@/lib/queries/user";
+import { getUserData, getLinkedAccountProviders } from "@/lib/queries/user";
+import { getStudentData } from "@/lib/queries/students";
+import { getProfessionalProfile } from "@/lib/queries/professionals";
+import { getAuthErrorMessage } from "@/lib/auth-errors";
+import { getOptionalGoogleEnv } from "@/lib/env";
 
 import { AdminAccount } from "@/components/account/admin-account";
 import { ProfessionalAccount } from "@/components/account/professional-account";
 import { StudentAccount } from "@/components/account/student-account";
+import { GoogleAccountLink } from "@/components/account/google-account-link";
 
 import { Metadata } from 'next/dist/lib/metadata/types/metadata-interface';
 
@@ -16,7 +21,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
   let session;
   const requestHeaders = await headers();
 
@@ -39,13 +49,41 @@ export default async function AccountPage() {
     redirect("/sign-in");
   }
 
+  if (userData.role === "student") {
+    const studentData = await getStudentData(session.user.id);
+    if (!studentData) redirect("/complete-registration");
+  }
+
+  if (userData.role === "professional") {
+    const professionalData = await getProfessionalProfile(session.user.id);
+    if (!professionalData) redirect("/complete-registration");
+  }
+
+  const linkedProviders = await getLinkedAccountProviders(session.user.id);
+  const googleEnabled = Boolean(getOptionalGoogleEnv());
+
+  let accountContent;
   switch (userData.role) {
     case "admin":
-      return <AdminAccount userData={userData} />;
+      accountContent = <AdminAccount userData={userData} />;
+      break;
     case "professional":
-      return <ProfessionalAccount userData={userData} />;
+      accountContent = <ProfessionalAccount userData={userData} />;
+      break;
     case "student":
     default:
-      return <StudentAccount userData={userData} />;
+      accountContent = <StudentAccount userData={userData} />;
+      break;
   }
+
+  return (
+    <div>
+      {accountContent}
+      <GoogleAccountLink
+        googleEnabled={googleEnabled}
+        googleLinked={linkedProviders.includes("google")}
+        initialError={getAuthErrorMessage(params.error)}
+      />
+    </div>
+  );
 }

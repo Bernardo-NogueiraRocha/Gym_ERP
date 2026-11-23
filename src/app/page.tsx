@@ -6,6 +6,8 @@ import { AdminDashboard } from "./(dashboard)/components/admin_dashboard";
 import { StudentDashboard } from "./(dashboard)/components/student_dashboard";
 import { ProfessionalDashboard } from "./(dashboard)/components/professional_dashboard";
 import { getUserData } from "@/lib/queries/user";
+import { getStudentData } from "@/lib/queries/students";
+import { getProfessionalProfile } from "@/lib/queries/professionals";
 
 export const metadata: Metadata = {
   title: "Dashboard | GYM_ERP",
@@ -34,6 +36,16 @@ export default async function DashboardPage() {
 
   if (!userData) {
     redirect("/sign-in");
+  }
+
+  if (userData.role === "student") {
+    const studentData = await getStudentData(session.user.id);
+    if (!studentData) redirect("/complete-registration");
+  }
+
+  if (userData.role === "professional") {
+    const professionalData = await getProfessionalProfile(session.user.id);
+    if (!professionalData) redirect("/complete-registration");
   }
 
   switch (userData.role) {

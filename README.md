@@ -6,6 +6,8 @@ Gym ERP is a web-based management system for fitness centers. It brings together
 
 ### Authentication and Access Control
 - User registration and sign-in.
+- Google sign-up and login, including a complete-registration step for students and professionals.
+- Explicit linking of Google to existing password accounts.
 - Session management and password recovery.
 - Role-based access control.
 
@@ -53,7 +55,7 @@ according to user roles.
    npm install
    ```
 
-2. Create `.env.local` in the project root. Copy `.env.example` and fill in `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `RESEND_API_KEY`, and `EMAIL_FROM`. Keep real credentials private; do not commit `.env.local`.
+2. Create `.env.local` in the project root. Copy `.env.example` and fill in `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL`, `RESEND_API_KEY`, and `EMAIL_FROM`. Keep real credentials private; do not commit `.env.local`. Google sign-up and login are optional; set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` together to enable them.
 
 3. Start PostgreSQL:
 
@@ -101,7 +103,7 @@ This starts PostgreSQL and the containerized application on port 3000. To stop t
 | Role | Current focus |
 | --- | --- |
 | Administrator | Student and professional metrics, with administrative workflows in progress |
-| Professional | View assigned students and register workouts |
+| Professional | Pending approval until an administrator verifies the account; then view assigned students and register workouts |
 | Student | View current workouts, request workouts, and access account and membership information |
 
 ## Technology

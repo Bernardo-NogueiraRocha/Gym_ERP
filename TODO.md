@@ -6,9 +6,11 @@ Current backlog for Gym ERP. Items marked complete reflect functionality or infr
 
 - [x] Better Auth integration with PostgreSQL and Drizzle.
 - [x] Sign-up, sign-in, sign-out, session handling, and password recovery flows.
-- [ ] Complete onboarding and reliably route new users to the correct role workflow.
-- [ ] Define and enforce secure role assignment; prevent public registration as an administrator.
+- [x] Complete onboarding and reliably route new users to the correct role workflow.
+- [x] Define and enforce secure role assignment; prevent public registration as an administrator.
 - [ ] Complete account deletion, including dependent profile and history cleanup.
+- [x] Google OAuth for sign-up (redirects to complete registering) and login
+- [x] Professional registration through Google plus an admin approval queue.
 
 ## Memberships and payments
 

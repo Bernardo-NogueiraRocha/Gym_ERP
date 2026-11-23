@@ -51,8 +51,8 @@ function ResetPasswordForm() {
   return (
     <div className='space-y-6'>
       <div>
-        <h1 className='text-xl font-semibold text-slate-100'>Reset password</h1>
-        <p className='text-xs text-slate-400 mt-1'>Please enter the new password and confirm it.</p>
+        <h1 className='text-xl font-semibold text-foreground'>Reset password</h1>
+        <p className='mt-1 text-xs text-muted-foreground'>Please enter the new password and confirm it.</p>
       </div>
       <form onSubmit={handleSubmit} className='space-y-4'>
 
@@ -62,7 +62,7 @@ function ResetPasswordForm() {
           onChange={(event) => setPassword(event.target.value)}
           placeholder="New password"
           required
-          className='block font-medium text-slate-100 mb-1'
+          className='mb-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
         />
 
         <input
@@ -73,14 +73,14 @@ function ResetPasswordForm() {
           }
           placeholder="Confirm password"
           required
-          className='block font-medium text-slate-100 mb-1 mt-3'
+          className='mb-1 mt-3 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
         />
 
-        <Button type="submit" disabled={loading} className='w-full hover:bg-blue-500 bg-blue-400 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2'>
+        <Button type="submit" size="lg" className='mt-2 w-full' disabled={loading}>
           {loading ? 'Resetting...' : 'Reset password'}
         </Button>
 
-        {message && <p>{message}</p>}
+        {message && <p className="text-sm text-destructive">{message}</p>}
       </form>
     </div>
   );
@@ -88,7 +88,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="text-slate-400 text-center text-sm p-4">Loading...</div>}>
+    <Suspense fallback={<div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}>
       <ResetPasswordForm />
     </Suspense>
   );

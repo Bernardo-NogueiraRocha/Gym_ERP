@@ -6,7 +6,7 @@ import { Resend } from 'resend';
 
 import { getDb } from '@/db';
 import * as schema from '@/db/schema';
-import { getEmailEnv, getServerEnv } from '@/lib/env';
+import { getEmailEnv, getServerEnv, getOptionalGoogleEnv } from '@/lib/env';
 
 function escapeHtml(value: string) {
   return value
@@ -18,6 +18,7 @@ function escapeHtml(value: string) {
 }
 
 const env = getServerEnv();
+const googleEnv = getOptionalGoogleEnv();
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -29,6 +30,22 @@ export const auth = betterAuth({
     },
   }),
 
+  ...(googleEnv
+    ? {
+      socialProviders: {
+        google: {
+          clientId: googleEnv.GOOGLE_CLIENT_ID,
+          clientSecret: googleEnv.GOOGLE_CLIENT_SECRET,
+        },
+      },
+    }
+    : {}),
+  account: {
+    accountLinking: {
+      // Existing password accounts must link Google explicitly from /account.
+      disableImplicitLinking: true,
+    },
+  },
   emailAndPassword: {
     enabled: true,
     resetPasswordTokenExpiresIn: 60 * 60,
