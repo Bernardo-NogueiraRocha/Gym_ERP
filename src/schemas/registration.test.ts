@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { completeRegistrationSchema } from './registration';
+import { completeRegistrationSchema, registerProfessionalSchema } from './registration';
 
 test('accepts a student registration and normalizes CPF and phone', () => {
   const result = completeRegistrationSchema.safeParse({
@@ -83,4 +83,53 @@ test('never accepts the administrator role', () => {
   });
 
   assert.equal(result.success, false);
+});
+
+const validProfessional = {
+  name: 'Ada Lovelace',
+  email: 'ada@example.com',
+  password: 'password123',
+  cref: '012345678/G-SP',
+  specialty: 'Strength training',
+};
+
+test('accepts a professional sign-up and normalizes email', () => {
+  const result = registerProfessionalSchema.safeParse({
+    ...validProfessional,
+    email: '  ADA@Example.com ',
+  });
+
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.email, 'ada@example.com');
+    assert.equal(result.data.cref, '012345678/G-SP');
+    assert.equal(result.data.specialty, 'Strength training');
+  }
+});
+
+test('requires CREF and specialty on a professional sign-up', () => {
+  const result = registerProfessionalSchema.safeParse({
+    ...validProfessional,
+    cref: '   ',
+    specialty: '',
+  });
+
+  assert.equal(result.success, false);
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors;
+    assert.ok(errors.cref?.length);
+    assert.ok(errors.specialty?.length);
+  }
+});
+
+test('rejects a professional sign-up with a short password', () => {
+  const result = registerProfessionalSchema.safeParse({
+    ...validProfessional,
+    password: 'short',
+  });
+
+  assert.equal(result.success, false);
+  if (!result.success) {
+    assert.ok(result.error.flatten().fieldErrors.password?.length);
+  }
 });

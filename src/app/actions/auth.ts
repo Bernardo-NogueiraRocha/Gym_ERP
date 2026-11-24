@@ -6,7 +6,11 @@ import { professionals, students, user } from '@/db/schema';
 import { headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 import { registerStudentSchema } from '@/schemas/student';
-import { completeRegistrationSchema, type RegistrationRole } from '@/schemas/registration';
+import {
+    completeRegistrationSchema,
+    registerProfessionalSchema,
+    type RegistrationRole,
+} from '@/schemas/registration';
 import {
     getErrorCode,
     getViolatedConstraint,
@@ -271,6 +275,110 @@ export async function registerStudentAction(
         }
 
         console.error('Registration failed:', getErrorCode(error) ?? 'unknown error');
+
+        return {
+            success: false,
+            error: rolledBack
+                ? 'We could not create your account. Please try again.'
+                : 'We could not finish creating your account. Please contact support.',
+        };
+    }
+}
+
+export type RegisterProfessionalResult =
+    | { success: true }
+    | { success: false; error?: string; errors?: FieldErrors };
+
+export async function registerProfessionalAction(
+    formData: FormData,
+): Promise<RegisterProfessionalResult> {
+    const parsed = registerProfessionalSchema.safeParse({
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        cref: formData.get('cref'),
+        specialty: formData.get('specialty'),
+    });
+
+    if (!parsed.success) {
+        return { success: false, errors: parsed.error.flatten().fieldErrors };
+    }
+
+    const data = parsed.data;
+    const db = getDb();
+
+    // Same cheap pre-flight check as the student flow so users get a
+    // field-level error before an auth user is created.
+    const [emailOwner] = await db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, data.email))
+        .limit(1);
+    if (emailOwner) return { success: false, errors: EMAIL_TAKEN };
+
+    let createdUserId: string | null = null;
+
+    try {
+        const authResult = await auth.api.signUpEmail({
+            body: {
+                email: data.email,
+                password: data.password,
+                name: data.name,
+            },
+            headers: await headers(),
+        });
+
+        if (!authResult?.user) {
+            return {
+                success: false,
+                error: 'Unable to create the account. Please try again.',
+            };
+        }
+
+        createdUserId = authResult.user.id;
+        const userId = createdUserId;
+
+        // New accounts default to the 'student' role, so promote the user and
+        // create the profile in a single transaction. Professionals always
+        // start unapproved, exactly like completing a registration.
+        await db.transaction(async (tx) => {
+            await tx
+                .update(user)
+                .set({ role: 'professional', updatedAt: new Date() })
+                .where(eq(user.id, userId));
+
+            await tx.insert(professionals).values({
+                userId,
+                cref: data.cref,
+                specialty: data.specialty,
+                approved: false,
+            });
+        });
+
+        return { success: true };
+    } catch (error) {
+        // Keep the failure atomic from the user's perspective: never leave an
+        // auth account without the matching professional profile.
+        const rolledBack = await removeIncompleteUser(createdUserId);
+
+        if (isUniqueViolation(error)) {
+            if ((getViolatedConstraint(error) ?? '').includes('email')) {
+                return { success: false, errors: EMAIL_TAKEN };
+            }
+            return {
+                success: false,
+                error: 'An account with these details already exists.',
+            };
+        }
+
+        if (isDuplicateEmailError(error)) {
+            return { success: false, errors: EMAIL_TAKEN };
+        }
+
+        console.error(
+            'Professional registration failed:',
+            getErrorCode(error) ?? 'unknown error',
+        );
 
         return {
             success: false,

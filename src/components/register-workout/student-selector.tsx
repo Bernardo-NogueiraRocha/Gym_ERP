@@ -19,8 +19,8 @@ export function StudentSelector({ usersData, selectedUserId, onSelect }: Student
     }, [usersData, search]);
 
     return (
-        <div className="space-y-3 w-full xl:w-2/5 self-center">
-            <div className="text-center text-xl font-semibold text-slate-100">
+        <div className="space-y-3 w-full xl:w-4/5 self-center">
+            <div className="text-center text-xl font-semibold text-foreground">
                 Student List
             </div>
             <input
@@ -29,9 +29,9 @@ export function StudentSelector({ usersData, selectedUserId, onSelect }: Student
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search students by name"
                 aria-label="Search students by name"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-500"
+                className="w-full rounded-lg border border-zinc-700 bg-card px-3 py-2 text-foreground placeholder:text-zinc-500"
             />
-            <div className="max-h-96 space-y-2 overflow-y-auto">
+            <div className="h-81.25 space-y-2 overflow-y-auto pr-2 overscroll-contain">
                 {filteredUsers.map((student) => (
                     <button
                         type="button"
@@ -40,12 +40,12 @@ export function StudentSelector({ usersData, selectedUserId, onSelect }: Student
                         aria-pressed={selectedUserId === student.student_id}
                         className={`w-full rounded-lg border p-4 text-left transition ${selectedUserId === student.student_id
                             ? "border-blue-500 bg-blue-950/50"
-                            : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-600"
+                            : "border-zinc-800 bg-card hover:border-zinc-600"
                             }`}
                     >
-                        <span className="font-semibold text-zinc-100">{student.name}</span>
+                        <span className="font-semibold text-foreground">{student.name}</span>
                         {selectedUserId === student.student_id && (
-                            <span className="ml-2 text-sm text-blue-300">Selected</span>
+                            <span className="ml-2 text-sm text-primary">Selected</span>
                         )}
                     </button>
                 ))}

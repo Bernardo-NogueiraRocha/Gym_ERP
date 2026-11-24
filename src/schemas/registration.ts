@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { cpfSchema, optionalPhoneSchema } from './student';
+import { accountCredentialsSchema, cpfSchema, optionalPhoneSchema } from './student';
 
 export const registrationRoles = ['student', 'professional'] as const;
 
@@ -32,3 +32,12 @@ export const completeRegistrationSchema = z.discriminatedUnion('role', [
 ]);
 
 export type CompleteRegistrationInput = z.infer<typeof completeRegistrationSchema>;
+
+// Email/password sign-up straight into a professional account. Reuses the same
+// CREF and specialty rules as completing a registration.
+export const registerProfessionalSchema = accountCredentialsSchema.extend({
+  cref: completeProfessionalRegistrationSchema.shape.cref,
+  specialty: completeProfessionalRegistrationSchema.shape.specialty,
+});
+
+export type RegisterProfessionalInput = z.infer<typeof registerProfessionalSchema>;

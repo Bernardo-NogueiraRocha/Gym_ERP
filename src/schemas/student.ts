@@ -89,7 +89,9 @@ export const optionalPhoneSchema = z.preprocess(
   phoneSchema.optional(),
 );
 
-export const registerStudentSchema = z.object({
+// Account fields shared by every email/password registration flow, no matter
+// the role chosen by the user.
+export const accountCredentialsSchema = z.object({
   name: z
     .string()
     .trim()
@@ -106,7 +108,9 @@ export const registerStudentSchema = z.object({
   password: z
     .string()
     .min(8, "Password must have at least 8 characters."),
+});
 
+export const registerStudentSchema = accountCredentialsSchema.extend({
   cpf: cpfSchema,
 
   phone: optionalPhoneSchema,

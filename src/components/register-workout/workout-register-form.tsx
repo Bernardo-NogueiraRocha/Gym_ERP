@@ -133,25 +133,25 @@ export function WorkoutRegisterForm({ exercises, students, workoutRequests }: Wo
                 onSubmit={handleSubmit}
                 className="mx-auto mt-4 max-w-6xl space-y-4 rounded-2xl border-2 p-6"
             >
-                <p className="text-slate-200" aria-live="polite">
+                <p className="text-muted-foreground" aria-live="polite">
                     {selectedStudentId
                         ? `Selected student: ${students.find((student) => student.student_id === selectedStudentId)?.name ?? "Student"}`
                         : "Select a student from the list or choose a workout request above."}
                 </p>
-                <label className="block space-y-1 text-slate-100">
+                <label className="block space-y-1 text-foreground">
                     <span>Workout title</span>
                     <input
                         required
                         maxLength={50}
                         value={title}
                         onChange={(event) => setTitle(event.target.value)}
-                        className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2"
+                        className="w-full rounded-lg border border-border bg-background font-semibold text-xl text-foreground px-3 py-2"
                     />
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 grid-rows2">
 
                     <section className="space-y-2 max-w-xl">
-                        <h3 className="text-lg font-medium text-slate-100">Exercise library</h3>
+                        <h3 className="text-lg font-medium text-foreground">Exercise library</h3>
                         <ExerciseList
                             exerciseList={exercises}
                             selectedIds={selectedIds}
@@ -160,7 +160,7 @@ export function WorkoutRegisterForm({ exercises, students, workoutRequests }: Wo
                     </section>
 
                     <section className="space-y-3">
-                        <h3 className="text-lg font-medium text-slate-100">
+                        <h3 className="text-lg font-medium text-foreground">
                             Selected exercises ({items.length})
                         </h3>
                         <SelectedExercises
@@ -173,12 +173,12 @@ export function WorkoutRegisterForm({ exercises, students, workoutRequests }: Wo
                     </section>
 
                     <section className="ml-4 space-y-3">
-                        <h3 className="text-lg font-medium text-slate-100">Start date</h3>
+                        <h3 className="text-lg font-medium text-foreground">Start date</h3>
                         <DatePicker date={startDate} onSelect={setStartDate} />
                     </section>
 
                     <section className="ml-4 space-y-3">
-                        <h3 className="text-lg font-medium text-slate-100">End date</h3>
+                        <h3 className="text-lg font-medium text-foreground">End date</h3>
                         <DatePicker date={endDate} onSelect={setEndDate} />
                     </section>
                 </div>
@@ -188,7 +188,7 @@ export function WorkoutRegisterForm({ exercises, students, workoutRequests }: Wo
                         {isSubmitting ? "Saving…" : "Submit Workout"}
                     </Button>
                 </div>
-                {error && <p role="alert" className="text-center text-red-400">{error}</p>}
+                {error && <p role="alert" className="text-center text-destructive">{error}</p>}
             </form>
         </div>
     );

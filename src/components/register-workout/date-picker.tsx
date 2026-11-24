@@ -1,6 +1,4 @@
 "use client"
-
-import * as React from "react"
 import { format } from "date-fns"
 import { ChevronDownIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,7 +9,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-// Definimos as propriedades que o DatePicker agora vai aceitar
 interface DatePickerProps {
   date: Date | undefined
   onSelect: (date: Date | undefined) => void
@@ -25,7 +22,7 @@ export function DatePicker({ date, onSelect }: DatePickerProps) {
           <Button 
             variant={"outline"} 
             data-empty={!date} 
-            className="w-53 justify-between text-left font-normal data-[empty=true]:text-muted-foreground text-slate-600"
+            className="w-53 justify-between text-left font-normal data-[empty=true]:text-foreground text-secondary-foreground"
           >
             {date ? format(date, "PPP") : <span>Pick a date</span>}
             <ChevronDownIcon data-icon="inline-end" />
