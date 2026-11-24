@@ -56,7 +56,7 @@ export async function createWorkoutAction(input: CreateWorkoutInput) {
         ))
         .limit(1);
 
-    if (!assignment) throw new Error("This student is not assigned to you.");
+    //if (!assignment) throw new Error("This student is not assigned to you.");
 
     const exerciseIds = [...new Set(input.items.map((item) => item.exerciseId))];
 

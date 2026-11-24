@@ -39,16 +39,13 @@ export default async function AttendWorkoutPage({ params }: AttendWorkoutPagePro
     return (
         <div className="space-y-4 p-6">
             <h1 className="text-xl font-semibold text-foreground">Attending Workout</h1>
-            <p className="text-sm text-muted-foreground">Workout ID: {workoutId}</p>
-            <p className="text-sm text-muted-foreground">User ID: {userId}</p>
-            <p>
+            <p className='font-semibold text-xl'>
                 {workoutData.title} <br />
-                {workoutData.startDate}
             </p>
             <WorkoutAttendanceForm 
                 workoutData={workoutData} 
                 workoutItems={workoutItems}
-                exercises={exerciseList}
+                exerciseList={exerciseList}
             />
         </div>
     );

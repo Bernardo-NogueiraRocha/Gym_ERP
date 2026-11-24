@@ -1,281 +1,277 @@
 "use client";
 
-import { useState, useMemo, SubmitEvent } from "react";
-import { workouts } from "@/db/schema";
-import { InferSelectModel } from "drizzle-orm";
+import { useEffect, useMemo, useState, type SubmitEvent } from "react";
+import type { InferSelectModel } from "drizzle-orm";
 import type { WorkoutItems, ExerciseOption } from "@/lib/types";
-import BodyHighlighter from './body-highlighter'
+import { workouts } from "@/db/schema";
+import { finishWorkoutAction } from "@/app/actions/attend-workout/actions";
+import { Button } from "@/components/ui/button";
+import { ExerciseList } from "@/components/register-workout/exercise-list";
+import { MuscleActivationPanel } from "./muscle-activation-panel";
+import { WorkoutExerciseCard } from "./workout-exercise-card";
+import { WorkoutSessionOverview } from "./workout-session-overview";
+import {
+    buildInitialExercises,
+    createActiveExercise,
+    type ActiveExercise,
+    type ActiveSet,
+} from "./workout-attend.types";
 import type { ExtendedBodyPart, Slug } from "@mjcdev/react-body-highlighter";
-import { Button } from "../ui/button";
-import { finishWorkoutAction } from '@/app/actions/attend-workout/actions'
 
 type Workout = InferSelectModel<typeof workouts>;
-
-type MuscleStimulus = {
-    slug: string;
-    stimulusStrength: number;
-};
 
 interface WorkoutAttendanceFormProps {
     workoutItems: WorkoutItems;
     workoutData: Workout;
-    exercises: ExerciseOption[];
-}
-
-type ActiveSet = {
-    setNumber: number;
-    targetReps: number | null;
-    actualReps: string;
-    actualWeight: string;
-    completed: boolean;
-};
-
-type ActiveExercise = {
-    exerciseId: string;
-    exerciseName: string;
-    restSeconds: number | null;
-    muscles: MuscleStimulus[];
-    sets: ActiveSet[];
-};
-
-function buildInitialExercises(items: WorkoutItems): ActiveExercise[] {
-    return items.map((item) => {
-        const setCount = item.sets ?? 1;
-        return {
-            exerciseId: item.exerciseId,
-            exerciseName: item.exerciseName,
-            restSeconds: item.restSeconds,
-            sets: Array.from({ length: setCount }, (_, idx) => ({
-                setNumber: idx + 1,
-                targetReps: item.reps,
-                actualReps: item.reps ? String(item.reps) : "",
-                actualWeight: "",
-                completed: false,
-            })),
-            muscles: item.muscles
-        };
-    });
+    exerciseList: ExerciseOption[];
 }
 
 export function WorkoutAttendanceForm({
     workoutItems,
     workoutData,
-    exercises,
+    exerciseList,
 }: WorkoutAttendanceFormProps) {
     const [activeExercises, setActiveExercises] = useState<ActiveExercise[]>(() =>
         buildInitialExercises(workoutItems)
     );
-
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [startedAt] = useState<string>(() => new Date().toISOString());
+    const [workoutDate, setWorkoutDate] = useState<Date | undefined>();
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [isTimerPaused, setIsTimerPaused] = useState(false);
+
+    const plannedExerciseIds = useMemo(
+        () => new Set(workoutItems.map((item) => item.exerciseId)),
+        [workoutItems]
+    );
+
+    useEffect(() => {
+        if (isTimerPaused) return;
+
+        const intervalId = window.setInterval(() => {
+            setElapsedSeconds((elapsed) => elapsed + 1);
+        }, 1000);
+
+        return () => window.clearInterval(intervalId);
+    }, [isTimerPaused]);
+
+    const totalSets = useMemo(
+        () => activeExercises.reduce((total, exercise) => total + exercise.sets.length, 0),
+        [activeExercises]
+    );
+    const completedSets = useMemo(
+        () => activeExercises.reduce(
+            (total, exercise) => total + exercise.sets.filter((set) => set.completed).length,
+            0
+        ),
+        [activeExercises]
+    );
 
     function updateSet(
-        exerciseIndex: number,
-        setIndex: number,
-        patch: Partial<ActiveSet>
+        exerciseId: string,
+        setNumber: number,
+        changes: Partial<ActiveSet>
     ) {
-        setActiveExercises((prev) =>
-            prev.map((ex, eIdx) => {
-                if (eIdx !== exerciseIndex) return ex;
-                return {
-                    ...ex,
-                    sets: ex.sets.map((s, sIdx) =>
-                        sIdx === setIndex ? { ...s, ...patch } : s
-                    ),
-                };
-            })
-        );
+        setActiveExercises((current) => current.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) return exercise;
+            return {
+                ...exercise,
+                sets: exercise.sets.map((set) => set.setNumber === setNumber
+                    ? { ...set, ...changes }
+                    : set
+                ),
+            };
+        }));
     }
 
-    const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setError(null);
-        setIsSubmitting(true);
-        const completedAt = new Date().toISOString();
-        const formattedSets = activeExercises.flatMap(
-            (exercise) => exercise.sets.map(
-                (set) => {
-                    const parsedRep = set.actualReps.trim() == "" ? null : Number(set.actualReps)
-                    const parsedWeight = set.actualWeight.trim() == ""
-                        ? null
-                        : Number(set.actualWeight).toFixed(2)
-                    return {
-                        exerciseId: exercise.exerciseId,
-                        setNumber: set.setNumber,
-                        targetReps: set.targetReps,
-                        actualReps: parsedRep,
-                        actualWeight: parsedWeight,
-                        completed: set.completed,
+    function toggleExtraExercise(exerciseId: string) {
+        if (plannedExerciseIds.has(exerciseId)) return;
+        const selectedExercise = exerciseList.find((exercise) => exercise.id === exerciseId);
+        if (!selectedExercise) return;
+
+        setActiveExercises((current) => {
+            if (current.some((exercise) => exercise.exerciseId === exerciseId)) {
+                return current.filter((exercise) => exercise.exerciseId !== exerciseId);
+            }
+            return [...current, createActiveExercise(selectedExercise)];
+        });
+    }
+
+    function copySetToRemaining(exerciseId: string, setNumber: number) {
+        setActiveExercises((current) => current.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) return exercise;
+            const sourceSet = exercise.sets.find((set) => set.setNumber === setNumber);
+            if (!sourceSet) return exercise;
+
+            return {
+                ...exercise,
+                sets: exercise.sets.map((set) => set.setNumber <= setNumber
+                    ? set
+                    : {
+                        ...set,
+                        actualWeight: sourceSet.actualWeight,
+                        actualReps: sourceSet.actualReps,
                     }
-                }
-            )
-        )
-        try {
-            const result = await finishWorkoutAction(
-                {
-                    workoutId: workoutData.id,
-                    startedAt: startedAt,
-                    completedAt: completedAt,
-                    sets: formattedSets
-                }
-            )
-        }
-        catch (submitError) {
-            setError(submitError instanceof Error ? submitError.message : 'Failed to finish workout session')
-        }
-        finally {
-            setIsSubmitting(false)
-        }
+                ),
+            };
+        }));
     }
 
     const highlightedMuscles = useMemo<ExtendedBodyPart[]>(() => {
         const totals = new Map<string, number>();
 
-        // Sum stimulusStrength for every COMPLETED set
         for (const exercise of activeExercises) {
-            const completedSetsCount = exercise.sets.filter((s) => s.completed).length;
-            if (completedSetsCount === 0) continue;
+            const completedCount = exercise.sets.filter((set) => set.completed).length;
+            if (completedCount === 0) continue;
 
             for (const muscle of exercise.muscles) {
-                const addedStimulus = muscle.stimulusStrength * completedSetsCount;
-                totals.set(muscle.slug, (totals.get(muscle.slug) ?? 0) + addedStimulus);
+                totals.set(
+                    muscle.slug,
+                    (totals.get(muscle.slug) ?? 0) + muscle.stimulusStrength * completedCount
+                );
             }
         }
 
         if (totals.size === 0) return [];
-
-        // Bucket totals into intensity 1, 2, or 3 relative to the highest-worked muscle
         const maxStimulus = Math.max(...totals.values());
 
         return Array.from(totals.entries()).map(([slug, total]) => {
             const ratio = total / maxStimulus;
-            let intensity = 1;
-            if (ratio > 0.66) intensity = 3;
-            else if (ratio > 0.33) intensity = 2;
-
-            return {
-                slug: slug as Slug,
-                intensity,
-            };
+            const intensity = ratio > 0.66 ? 3 : ratio > 0.33 ? 2 : 1;
+            return { slug: slug as Slug, intensity };
         });
     }, [activeExercises]);
 
+    async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setError(null);
+
+        const formattedSets = [];
+        for (const exercise of activeExercises) {
+            for (const set of exercise.sets) {
+                const repsText = set.actualReps.trim();
+                const actualReps = repsText === "" ? null : Number(repsText);
+                if (actualReps !== null && (!Number.isInteger(actualReps) || actualReps < 0)) {
+                    setError(`Enter a whole, non-negative rep count for ${exercise.exerciseName}, set ${set.setNumber}.`);
+                    return;
+                }
+
+                const weightText = set.actualWeight.trim();
+                const weight = weightText === "" ? null : Number(weightText);
+                if (weight !== null && (!Number.isFinite(weight) || weight < 0)) {
+                    setError(`Enter a valid, non-negative weight for ${exercise.exerciseName}, set ${set.setNumber}.`);
+                    return;
+                }
+
+                formattedSets.push({
+                    exerciseId: exercise.exerciseId,
+                    setNumber: set.setNumber,
+                    targetReps: set.targetReps,
+                    actualReps,
+                    actualWeight: weight === null ? null : weight.toFixed(2),
+                    completed: set.completed,
+                });
+            }
+        }
+
+        setIsSubmitting(true);
+        const now = new Date();
+        const completedAtDate = new Date(workoutDate ?? now);
+        completedAtDate.setHours(
+            now.getHours(),
+            now.getMinutes(),
+            now.getSeconds(),
+            now.getMilliseconds()
+        );
+        const startedAtDate = new Date(completedAtDate.getTime() - elapsedSeconds * 1000);
+
+        try {
+            const result = await finishWorkoutAction({
+                workoutId: workoutData.id,
+                startedAt: startedAtDate.toISOString(),
+                completedAt: completedAtDate.toISOString(),
+                sets: formattedSets,
+            });
+            if (!result.success) {
+                setError(result.error ?? "Failed to save workout session.");
+            }
+        } catch (submitError) {
+            setError(submitError instanceof Error
+                ? submitError.message
+                : "Failed to finish workout session.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
     return (
-        <form onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+            <WorkoutSessionOverview
+                workoutDate={workoutDate}
+                onWorkoutDateChange={setWorkoutDate}
+                elapsedSeconds={elapsedSeconds}
+                isTimerPaused={isTimerPaused}
+                onTimerPauseToggle={() => setIsTimerPaused((paused) => !paused)}
+                onDurationSet={(minutes) => setElapsedSeconds(minutes * 60)}
+                completedSets={completedSets}
+                totalSets={totalSets}
+            />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)]">
                 <div className="space-y-4">
-                    {activeExercises.map((exercise, exIndex) => (
-                        <div
-                            key={`${exercise.exerciseId}-${exIndex}`}
-                            className="space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm"
-                        >
-                            {/* Exercise Header */}
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-card-foreground">
-                                    {exIndex + 1}. {exercise.exerciseName}
-                                </h3>
-                                {exercise.restSeconds && (
-                                    <span className="text-xs text-muted-foreground">
-                                        Rest: {exercise.restSeconds}s
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Column Labels */}
-                            <div className="grid grid-cols-12 gap-2 px-2 text-xs font-medium text-muted-foreground">
-                                <div className="col-span-2">Set</div>
-                                <div className="col-span-4">Weight (kg)</div>
-                                <div className="col-span-4">Reps</div>
-                                <div className="col-span-2 text-center">Done</div>
-                            </div>
-
-                            {/* One Row Per Set */}
-                            <div className="space-y-2">
-                                {exercise.sets.map((set, setIndex) => (
-                                    <div
-                                        key={set.setNumber}
-                                        className={`grid grid-cols-12 items-center gap-2 rounded-lg p-2 transition-colors ${set.completed
-                                            ? "border border-success/30 bg-success/10"
-                                            : "border border-border bg-muted"
-                                            }`}
-                                    >
-                                        <div className="col-span-2 text-sm font-semibold text-foreground">
-                                            {set.setNumber}
-                                        </div>
-
-                                        <div className="col-span-4">
-                                            <input
-                                                type="number"
-                                                step="0.5"
-                                                placeholder="0"
-                                                value={set.actualWeight}
-                                                onChange={(e) =>
-                                                    updateSet(exIndex, setIndex, {
-                                                        actualWeight: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                            />
-                                        </div>
-
-                                        <div className="col-span-4">
-                                            <input
-                                                type="number"
-                                                placeholder={
-                                                    set.targetReps
-                                                        ? String(set.targetReps)
-                                                        : "0"
-                                                }
-                                                value={set.actualReps}
-                                                onChange={(e) =>
-                                                    updateSet(exIndex, setIndex, {
-                                                        actualReps: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                            />
-                                        </div>
-
-                                        <div className="col-span-2 flex justify-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={set.completed}
-                                                onChange={(e) =>
-                                                    updateSet(exIndex, setIndex, {
-                                                        completed: e.target.checked,
-                                                    })
-                                                }
-                                                className="h-5 w-5 cursor-pointer accent-success focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                    <section className="space-y-4">
+                        <div>
+                            <h2 className="text-lg font-semibold text-foreground">Exercises</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Record your work for each planned or added exercise.
+                            </p>
                         </div>
-                    ))}
+                        {activeExercises.length > 0 ? activeExercises.map((exercise, index) => (
+                            <WorkoutExerciseCard
+                                key={exercise.exerciseId}
+                                exercise={exercise}
+                                position={index + 1}
+                                removable={!plannedExerciseIds.has(exercise.exerciseId)}
+                                onRemove={toggleExtraExercise}
+                                onSetChange={updateSet}
+                                onCopySetToRemaining={copySetToRemaining}
+                            />
+                        )) : (
+                            <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                                No exercises are currently in this workout. Add one from the library to get started.
+                            </p>
+                        )}
+                    </section>
+
+                    <section className="space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm">
+                        <div>
+                            <h2 className="font-semibold">Add an exercise</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Planned exercises stay in the session; added exercises can be removed.
+                            </p>
+                        </div>
+                        <ExerciseList
+                            exerciseList={exerciseList}
+                            selectedIds={activeExercises.map((exercise) => exercise.exerciseId)}
+                            lockedIds={[...plannedExerciseIds]}
+                            onToggle={toggleExtraExercise}
+                        />
+                    </section>
                 </div>
-                <section className="h-fit space-y-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-sm">
-                    <div>
-                        <h2 className="font-semibold">Muscle activation</h2>
-                        <p className="text-sm text-muted-foreground">Highlights update as you complete sets.</p>
-                    </div>
-                    <BodyHighlighter data={highlightedMuscles} />
-                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground" aria-label="Muscle activation intensity legend">
-                        <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-info" />Light</span>
-                        <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-primary" />Moderate</span>
-                        <span className="flex items-center gap-2"><i className="h-3 w-3 rounded-sm bg-accent" />High</span>
-                    </div>
-                </section>
+
+                <div className="space-y-4 xl:sticky xl:top-4">
+                    <MuscleActivationPanel muscles={highlightedMuscles} />
+                </div>
             </div>
-            <div className="flex justify-center m-5">
-                <Button
-                    className='text-lg'
-                    disabled={isSubmitting}
-                    type="submit"
-                >
-                    {isSubmitting? "Saving Workout": 'Finish Workout'}
+
+            {error && (
+                <p className="text-center text-sm text-destructive" role="alert">
+                    {error}
+                </p>
+            )}
+            <div className="flex justify-center">
+                <Button className="text-lg" disabled={isSubmitting} type="submit">
+                    {isSubmitting ? "Saving workout…" : "Finish workout"}
                 </Button>
             </div>
         </form>

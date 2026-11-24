@@ -1,18 +1,18 @@
-'use client';
-import type { InferSelectModel } from "drizzle-orm";
-import { exercises } from "@/db/schema";
+"use client";
 
-type Exercise = InferSelectModel<typeof exercises>;
+import type { ExerciseOption } from "@/lib/types";
 
 type ExerciseSelectorProps = {
-    exercise: Exercise;
+    exercise: ExerciseOption;
     selected: boolean;
+    locked?: boolean;
     onToggle: (id: string) => void;
 };
 
 export function ExerciseSelector({
     exercise,
     selected,
+    locked = false,
     onToggle,
 }: ExerciseSelectorProps) {
     return (
@@ -20,18 +20,15 @@ export function ExerciseSelector({
             type="button"
             onClick={() => onToggle(exercise.id)}
             aria-pressed={selected}
-            className={`w-full rounded-lg border p-3 text-left transition-colors font-medium ${selected
-                    ? "border-green-500 bg-green-100 text-green-900"
-                    : "border-slate-300 bg-gray-200 text-slate-900 hover:bg-slate-100"
+            disabled={locked}
+            className={`flex w-full items-center justify-between gap-3 rounded-lg border p-3 text-left font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-75 ${selected
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-border bg-background text-foreground hover:bg-muted"
                 }`}
         >
-            <span className="flex items-center justify-between">
-                <span>{exercise.name}</span>
-                {selected && (
-                    <span className="font-semibold text-green-700">
-                        ✓ Selected
-                    </span>
-                )}
+            <span>{exercise.name}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+                {locked ? "In workout" : selected ? "Added · remove" : "Add"}
             </span>
         </button>
     );
