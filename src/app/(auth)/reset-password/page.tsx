@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -56,31 +57,53 @@ function ResetPasswordForm() {
       </div>
       <form onSubmit={handleSubmit} className='space-y-4'>
 
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="New password"
-          required
-          className='mb-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
-        />
+        <div>
+          <label
+            htmlFor="reset-password"
+            className="mb-1 block text-xs font-medium text-foreground"
+          >
+            New Password
+          </label>
+          <Input
+            id="reset-password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="••••••••"
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(event) =>
-            setConfirmPassword(event.target.value)
-          }
-          placeholder="Confirm password"
-          required
-          className='mb-1 mt-3 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30'
-        />
+        <div>
+          <label
+            htmlFor="reset-confirm-password"
+            className="mb-1 block text-xs font-medium text-foreground"
+          >
+            Confirm Password
+          </label>
+          <Input
+            id="reset-confirm-password"
+            type="password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(event) =>
+              setConfirmPassword(event.target.value)
+            }
+            placeholder="••••••••"
+            required
+          />
+        </div>
 
         <Button type="submit" size="lg" className='mt-2 w-full' disabled={loading}>
           {loading ? 'Resetting...' : 'Reset password'}
         </Button>
 
-        {message && <p className="text-sm text-destructive">{message}</p>}
+        {message && (
+          <p role="alert" className="text-sm text-destructive">
+            {message}
+          </p>
+        )}
       </form>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -44,14 +45,23 @@ export default function ForgotPasswordPage() {
       </div>
 
       <form onSubmit={handleSubmit} className='space-y-6'>
-        <input
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Email"
-          required
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
-        />
+        <div>
+          <label
+            htmlFor="forgot-email"
+            className="mb-1 block text-xs font-medium text-foreground"
+          >
+            Email Address
+          </label>
+          <Input
+            id="forgot-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="john@example.com"
+            required
+          />
+        </div>
 
         <Button
           type="submit"
@@ -62,7 +72,11 @@ export default function ForgotPasswordPage() {
           {loading ? 'Checking...' : 'Send reset link'}
         </Button>
 
-        {message && <p className="mt-2 text-xs text-foreground">{message}</p>}
+        {message && (
+          <p role="status" className="mt-2 text-xs text-foreground">
+            {message}
+          </p>
+        )}
       </form>
     </div>
   );

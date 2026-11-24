@@ -1,10 +1,16 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next/dist/lib/metadata/types/metadata-interface';
 
 import { CompleteRegistrationForm } from '@/components/auth/complete-registration-form';
 import { getSession } from '@/lib/auth-server';
 import { getProfessionalProfile } from '@/lib/queries/professionals';
 import { getStudentData } from '@/lib/queries/students';
 import { getUserData } from '@/lib/queries/user';
+
+export const metadata: Metadata = {
+  title: 'Complete Registration | GYM_ERP',
+  description: 'Finish setting up your GYM_ERP account.',
+};
 
 export const dynamic = 'force-dynamic';
 

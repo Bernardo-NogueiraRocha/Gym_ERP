@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { signIn } from '@/lib/auth-client';
 
 type SignInFormProps = {
@@ -54,7 +55,10 @@ export function SignInForm({ googleEnabled, initialError = null }: SignInFormPro
       </div>
 
       {error && (
-        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+        <div
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+        >
           {error}
         </div>
       )}
@@ -62,23 +66,30 @@ export function SignInForm({ googleEnabled, initialError = null }: SignInFormPro
       <form onSubmit={handleSignIn} className="space-y-4">
         {/* Email */}
         <div>
-          <label className="block text-xs font-medium text-foreground mb-1">
+          <label
+            htmlFor="signin-email"
+            className="block text-xs font-medium text-foreground mb-1"
+          >
             Email Address
           </label>
-          <input
+          <Input
+            id="signin-email"
             type="email"
             required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="john@example.com"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
         </div>
 
         {/* Password */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-xs font-medium text-foreground">
+            <label
+              htmlFor="signin-password"
+              className="block text-xs font-medium text-foreground"
+            >
               Password
             </label>
             <Link
@@ -88,13 +99,14 @@ export function SignInForm({ googleEnabled, initialError = null }: SignInFormPro
               Forgot password?
             </Link>
           </div>
-          <input
+          <Input
+            id="signin-password"
             type="password"
             required
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
         </div>
 

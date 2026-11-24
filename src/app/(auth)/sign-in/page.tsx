@@ -1,6 +1,13 @@
+import type { Metadata } from 'next/dist/lib/metadata/types/metadata-interface';
+
 import { SignInForm } from '@/components/auth/sign-in-form';
 import { getAuthErrorMessage } from '@/lib/auth-errors';
 import { getOptionalGoogleEnv } from '@/lib/env';
+
+export const metadata: Metadata = {
+  title: 'Sign-In | GYM_ERP',
+  description: 'Sign in to GYM_ERP.',
+};
 
 export const dynamic = 'force-dynamic';
 

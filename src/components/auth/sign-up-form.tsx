@@ -10,14 +10,11 @@ import {
 } from '@/app/actions/auth';
 import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { Button } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field-error';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import type { RegistrationRole } from '@/schemas/registration';
 import { formatCPF, formatPhone, isValidCPF, isValidPhone } from '@/schemas/student';
-
-function FieldError({ messages }: { messages?: string[] }) {
-  if (!messages?.length) return null;
-
-  return <p className="mt-1 text-xs text-destructive">{messages[0]}</p>;
-}
 
 type SignUpFormProps = {
   googleEnabled: boolean;
@@ -99,6 +96,10 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
     }
   };
 
+  function describedBy(field: string) {
+    return fieldErrors[field]?.length ? `signup-${field}-error` : undefined;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -110,7 +111,10 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
       </div>
 
       {error && (
-        <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+        <div
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+        >
           {error}
         </div>
       )}
@@ -141,8 +145,9 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
+              aria-pressed={role === 'student'}
               onClick={() => handleRoleChange('student')}
-              className={`rounded-md border px-3 py-2 text-sm text-left transition-colors ${
+              className={`rounded-md border px-3 py-2 text-sm text-left transition-colors focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 ${
                 role === 'student'
                   ? 'border-primary bg-primary/10 text-foreground'
                   : 'border-border text-muted-foreground hover:border-ring/60 hover:bg-muted/50'
@@ -153,8 +158,9 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
             </button>
             <button
               type="button"
+              aria-pressed={role === 'professional'}
               onClick={() => handleRoleChange('professional')}
-              className={`rounded-md border px-3 py-2 text-sm text-left transition-colors ${
+              className={`rounded-md border px-3 py-2 text-sm text-left transition-colors focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 ${
                 role === 'professional'
                   ? 'border-primary bg-primary/10 text-foreground'
                   : 'border-border text-muted-foreground hover:border-ring/60 hover:bg-muted/50'
@@ -168,73 +174,85 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
 
         {/* Full Name */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground">
+          <label htmlFor="signup-name" className="mb-1 block text-xs font-medium text-foreground">
             Full Name
           </label>
-          <input
+          <Input
+            id="signup-name"
             type="text"
             name="name"
             required
+            autoComplete="name"
             value={formData.name}
             onChange={handleChange}
             placeholder="John Doe"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+            aria-invalid={fieldErrors.name?.length ? true : undefined}
+            aria-describedby={describedBy('name')}
           />
-          <FieldError messages={fieldErrors.name} />
+          <FieldError id="signup-name-error" messages={fieldErrors.name} />
         </div>
 
         {/* Email */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground">
+          <label htmlFor="signup-email" className="mb-1 block text-xs font-medium text-foreground">
             Email Address
           </label>
-          <input
+          <Input
+            id="signup-email"
             type="email"
             name="email"
             required
+            autoComplete="email"
             value={formData.email}
             onChange={handleChange}
             placeholder="john@example.com"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+            aria-invalid={fieldErrors.email?.length ? true : undefined}
+            aria-describedby={describedBy('email')}
           />
-          <FieldError messages={fieldErrors.email} />
+          <FieldError id="signup-email-error" messages={fieldErrors.email} />
         </div>
 
         {/* Password */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-foreground">
+          <label htmlFor="signup-password" className="mb-1 block text-xs font-medium text-foreground">
             Password
           </label>
-          <input
+          <Input
+            id="signup-password"
             type="password"
             name="password"
             required
             minLength={8}
+            autoComplete="new-password"
             value={formData.password}
             onChange={handleChange}
             placeholder="••••••••"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+            aria-invalid={fieldErrors.password?.length ? true : undefined}
+            aria-describedby={describedBy('password')}
           />
-          <FieldError messages={fieldErrors.password} />
+          <FieldError id="signup-password-error" messages={fieldErrors.password} />
         </div>
 
         {role === 'student' ? (
           /* Domain Data: CPF & Phone Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">
+              <label htmlFor="signup-cpf" className="mb-1 block text-xs font-medium text-foreground">
                 CPF
               </label>
 
-              <input
+              <Input
+                id="signup-cpf"
                 type="text"
                 name="cpf"
                 required
                 maxLength={14}
+                autoComplete="off"
                 value={formData.cpf}
                 onChange={handleChange}
                 placeholder="000.000.000-00"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                aria-invalid={fieldErrors.cpf?.length ? true : undefined}
+                aria-describedby={describedBy('cpf')}
               />
 
               {formData.cpf.replace(/\D/g, "").length === 11 && (
@@ -249,21 +267,24 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
                     : "✕ Invalid CPF"}
                 </p>
               )}
-              <FieldError messages={fieldErrors.cpf} />
+              <FieldError id="signup-cpf-error" messages={fieldErrors.cpf} />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">
+              <label htmlFor="signup-phone" className="mb-1 block text-xs font-medium text-foreground">
                 Phone Number <span className="text-muted-foreground">(optional)</span>
               </label>
 
-              <input
+              <Input
+                id="signup-phone"
                 type="tel"
                 name="phone"
+                autoComplete="tel"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="(11) 99999-9999"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                aria-invalid={fieldErrors.phone?.length ? true : undefined}
+                aria-describedby={describedBy('phone')}
               />
 
               {formData.phone.replace(/\D/g, "").length === 11 && (
@@ -278,33 +299,37 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
                     : "✕ Invalid phone number"}
                 </p>
               )}
-              <FieldError messages={fieldErrors.phone} />
+              <FieldError id="signup-phone-error" messages={fieldErrors.phone} />
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">
+              <label htmlFor="signup-cref" className="mb-1 block text-xs font-medium text-foreground">
                 CREF
               </label>
-              <input
+              <Input
+                id="signup-cref"
                 type="text"
                 name="cref"
                 required
                 maxLength={20}
+                autoComplete="off"
                 value={formData.cref}
                 onChange={handleChange}
                 placeholder="000000000/G-SP"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                aria-invalid={fieldErrors.cref?.length ? true : undefined}
+                aria-describedby={describedBy('cref')}
               />
-              <FieldError messages={fieldErrors.cref} />
+              <FieldError id="signup-cref-error" messages={fieldErrors.cref} />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">
+              <label htmlFor="signup-specialty" className="mb-1 block text-xs font-medium text-foreground">
                 Specialty
               </label>
-              <textarea
+              <Textarea
+                id="signup-specialty"
                 name="specialty"
                 required
                 maxLength={200}
@@ -312,9 +337,10 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
                 onChange={handleChange}
                 placeholder="Strength training, rehabilitation, ..."
                 rows={3}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+                aria-invalid={fieldErrors.specialty?.length ? true : undefined}
+                aria-describedby={describedBy('specialty')}
               />
-              <FieldError messages={fieldErrors.specialty} />
+              <FieldError id="signup-specialty-error" messages={fieldErrors.specialty} />
             </div>
 
             <p className="text-xs text-muted-foreground">
@@ -323,6 +349,8 @@ export function SignUpForm({ googleEnabled, initialError = null }: SignUpFormPro
             </p>
           </div>
         )}
+
+        <FieldError messages={fieldErrors.role} />
 
         {/* Submit Button */}
         <Button
